@@ -31,6 +31,7 @@
     "path": "^0.12.7",
     "socket.io": "^4.7.5",
     "yahoo-finance": "^0.3.8",
-    "yahoo-finance2": "^2.11.2"
+    "yahoo-finance2": "^2.11.2",
+    "nodemon": "^2.0.20"
   }
 }
