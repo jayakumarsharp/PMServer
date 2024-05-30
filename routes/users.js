@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 const { ensureCorrectUser } = require("../middleware/auth");
 const { BadRequestError } = require("../expressError");
-const User = require("../models/user");
+const User = require("../model/user");
 // const userUpdateSchema = require("../schemas/userUpdate.json");
 
 

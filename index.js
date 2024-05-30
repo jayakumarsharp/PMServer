@@ -9,8 +9,11 @@ import { connectDB } from './DBconnection';
 import securityapiRouter from './routes/securityRouter';
 import priceapiRouter from './routes/priceRouter';
 import uploadController from './routes/fileUploadRouter';
+import usersRoutes from './routes/users';
 
-const usersRoutes = require("./routes/users");
+
+const { authenticateJWT } = require("./middleware/auth");
+// const usersRoutes = require("./routes/users");
 // const portfoliosRoutes = require("./routes/portfolios");
 // const holdingsRoutes = require("./routes/holdings");
 const app = express();
@@ -56,6 +59,10 @@ app.post('/login', (req, res) => {
 app.use('/api', securityapiRouter);
 app.use('/api', priceapiRouter);
 app.use('/api', uploadController);
+app.use(authenticateJWT);
+app.use(cors());
+app.use(express.json());
+
 
 server.listen(3003, () => {
     console.log('Server is running on port 3003');
