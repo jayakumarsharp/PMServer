@@ -9,6 +9,10 @@ import { connectDB } from './DBconnection';
 import securityapiRouter from './routes/securityRouter';
 import priceapiRouter from './routes/priceRouter';
 import uploadController from './routes/fileUploadRouter';
+
+const usersRoutes = require("./routes/users");
+// const portfoliosRoutes = require("./routes/portfolios");
+// const holdingsRoutes = require("./routes/holdings");
 const app = express();
 
 app.use(cors());
