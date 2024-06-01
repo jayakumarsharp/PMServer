@@ -1,11 +1,39 @@
-const jsonschema = require("jsonschema");
 const express = require("express");
-const router = express.Router();
+const userRouter = express.Router();
 const { ensureCorrectUser } = require("../middleware/auth");
-const { BadRequestError } = require("../expressError");
+require("../expressError");
 const User = require("../model/user");
-// const userUpdateSchema = require("../schemas/userUpdate.json");
 
+
+/**
+ * POST /register
+ *
+ * Registers a new user.
+ *
+ * Request body should contain:
+ * {
+ *    "username": "example",
+ *    "password": "password123",
+ *    "email": "example@example.com"
+ * }
+ *
+ * Returns:
+ * {
+ *    "username": "example",
+ *    "email": "example@example.com"
+ * }
+ */
+userRouter.post("/register", async (req, res, next) => {
+  try {
+    const { username, password, email } = req.body;
+    const newUser = await User.register(username, password, email);
+    // Generate JWT token for the new user
+  const token = jwt.sign({ userId: newUser.id, username: newUser.username }, SECRET_KEY);
+    res.json({ username: newUser.username, email: newUser.email,token });
+  } catch (err) {
+    next(err);
+  }
+});
 
 /** GET /[username] => { user }
  *
@@ -14,15 +42,18 @@ const User = require("../model/user");
  *
  * Authorization required: same user-as-:username
  **/
-router.get("/:username", ensureCorrectUser, async function (req, res, next) {
+userRouter.get(
+  "/:username",
+  // ensureCorrectUser,
+  async function (req, res, next) {
     try {
       const user = await User.get(req.params.username);
       return res.json({ user });
     } catch (err) {
       return next(err);
     }
-  });
-
+  }
+);
 
 /** GET /[username]/complete => { user }
  *
@@ -34,12 +65,39 @@ router.get("/:username", ensureCorrectUser, async function (req, res, next) {
  * Authorization required: same user-as-:username
  **/
 
-  router.get("/:username/complete", ensureCorrectUser, async function(req,res,next){
-try{
-const user=await User.getComplete(req.params.username);return res.json({ user });
-} catch (err) {
-  return next(err);
-}
-});
+userRouter.get(
+  "/:username/complete",
+  // ensureCorrectUser,
+  async function (req, res, next) {
+    try {
+      const user = await User.getComplete(req.params.username);
+      return res.json({ user });
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
+/** POST /[username]/watchlist/[symbol] { state } => { watchlist }
+ *
+ * Returns {"watched": symbol}
+ *
+ * Authorization required: same-user-as:username
+ */
+
+userRouter.post(
+  "/:username/watchlist/:symbol",
+  ensureCorrectUser,
+  async function (req, res, next) {
+    try {
+      await User.addToWatchlist(req.params.username, req.params.symbol);
+      return res.json({ watched: req.params.symbol });
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
 
 
+
+export default userRouter;

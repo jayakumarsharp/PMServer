@@ -1,12 +1,12 @@
 import mongoose from "mongoose";
+import Portfolio from "./portfolio"
 
 const {
   NotFoundError,
-  BadRequestError,
-  UnauthorizedError,
+  BadRequestError
 } = require("../expressError");
 
-const Portfolio = require("./portfolio");
+
 
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
@@ -16,6 +16,43 @@ const userSchema = new mongoose.Schema({
 });
 
 const User = mongoose.model("User", userSchema);
+
+/** Register user with data.
+ *
+ * Returns { username, email }
+ *
+ * Throws BadRequestError on duplicates.
+ * It seems like there's an error in your code because the identifier username is being declared twice,
+ * function parameter renamed to avoid the collision:
+ **/
+async function register({
+  username,
+  password,
+  email,
+}) {
+  console.log("Register function called with:", username, password, email);
+
+  const duplicateUser = await User.findOne({ username });
+  console.log("Duplicate user:", duplicateUser);
+
+  if (duplicateUser)
+    throw new BadRequestError(`Duplicate Username: ${username}`);
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  console.log("Hashed password:", hashedPassword);
+
+  const result = await User.insertOne({
+    username,
+    password, 
+    email,
+  });
+  console.log("Inserted user result:", result);
+
+  const { username: regUsername, email: regEmail } = result.ops[0];
+  console.log("Inserted user:", regUsername, regEmail);
+
+  return { regUsername, regEmail };
+}
 
 // Define the get function to fetch user data including watchlist
 async function get(username) {
@@ -46,10 +83,11 @@ async function getComplete(username) {
     user.portfolios = portfolios;
     return user;
   } catch (error) {
-    throw new Error(`Error while fetching complete user data: ${error.message}`);
+    throw new Error(
+      `Error while fetching complete user data: ${error.message}`
+    );
   }
 }
-
 
 /// getUserPortfolioIds method directly as an instance method (methods) on the userSchema means that this
 // method will be available to each individual instance of the User model.
@@ -65,4 +103,29 @@ userSchema.methods.getUserPortfolioIds = async function () {
   return portfolioIds;
 };
 
-export { User, get,getComplete };
+/**
+ * Add stock to watchlist: update db, returns undefined.
+ *
+ * @param {string} username - username watching stock
+ * @param {string} symbol - stock symbol
+ */
+async function addToWatchlist(username, symbol) {
+  const user = await User.findOne({ username });
+  if (!user) throw new NotFoundError(`No username: ${username}`);
+  //This line queries the MongoDB collection users to find a document where the username matches the provided
+  //username and where within the watchlist array there is an object with a symbol property matching the provided symbol.
+  const duplicateCheck = await User.findOne({
+    username,
+    "watchlist.symbol": symbol,
+  });
+
+  if (duplicateCheck) {
+    throw new BadRequestError(
+      `Symbol ${symbol} already watched by user ${username}`
+    );
+  }
+  // Add the symbol to the user's watchlist
+  await User.updateOne({ username }, { $push: { watchlist: { symbol } } });
+}
+
+export { User, get, getComplete, addToWatchlist, register };

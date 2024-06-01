@@ -3,65 +3,56 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import socketIo from 'socket.io';
 import http from 'http';
-import jwt   from 'jsonwebtoken';
 
 import { connectDB } from './DBconnection';
 import securityapiRouter from './routes/securityRouter';
 import priceapiRouter from './routes/priceRouter';
 import uploadController from './routes/fileUploadRouter';
-import usersRoutes from './routes/users';
+import userRouter from './routes/users';
+import { authenticateJWT } from './middleware/auth'; 
 
 
-const { authenticateJWT } = require("./middleware/auth");
-// const usersRoutes = require("./routes/users");
-// const portfoliosRoutes = require("./routes/portfolios");
-// const holdingsRoutes = require("./routes/holdings");
+
 const app = express();
-
-app.use(cors());
 const server = http.createServer(app);
 const io = socketIo(server);
-let rowData = [
-    { id: 1, name: 'John', age: 30 },
-    { id: 2, name: 'Jane', age: 28 }
-];
 
-
-
-function sendDataToClients() {
-    io.emit('updateData', rowData);
-}
-
-setInterval(() => {
-    rowData = rowData.reverse();
-    sendDataToClients();
-}, 5000);
-
-connectDB();
-// Body Parser Middleware
+app.use(cors());
 app.use(bodyParser.json());
+app.use(express.json());
 
-const SECRET_KEY = 'your_secret_key';
+
+// Connect to MongoDB
+connectDB();
 
 
-app.post('/login', (req, res) => {
-    const { username, password } = req.body;
-  
-    // Replace this with your own user authentication logic
-    if (username === 'user' && password === 'password') {
-      const token = jwt.sign({ username }, SECRET_KEY, { expiresIn: '1h' });
-      res.json({ token });
-    } else {
-      res.status(401).send('Invalid credentials');
-    }
+// Register route without authentication
+app.use('/api/users', userRouter);
+
+
+// Use authenticateJWT for all routes that need authentication
+app.use(authenticateJWT);
+
+// Define routes that need authentication
+app.use('/api/security', securityapiRouter);
+app.use('/api/price', priceapiRouter);
+app.use('/api/upload', uploadController);
+
+
+
+  // Error handler
+  app.use((err, req, res, next) => {
+    const status = err.status || 500;
+    const message = err.message || 'Internal Server Error';
+    res.status(status).json({ error: message });
   });
 
-app.use('/api', securityapiRouter);
-app.use('/api', priceapiRouter);
-app.use('/api', uploadController);
-app.use(authenticateJWT);
-app.use(cors());
-app.use(express.json());
+
+// Protected route
+app.get("/api/protected", authenticateJWT, (req, res) => {
+  res.json({ message: "You are authorized!" });
+});
+
 
 
 server.listen(3003, () => {
