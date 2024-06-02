@@ -1,6 +1,6 @@
 const express = require("express");
 const userRouter = express.Router();
-const { ensureCorrectUser,authenticateJWT } = require("../middleware/auth");
+const { ensureCorrectUser } = require("../middleware/auth");
 require("../expressError");
 const User = require("../model/user");
 import { SECRET_KEY } from '../config';
@@ -96,10 +96,34 @@ userRouter.post(
   async function (req, res, next) {
     try {
       const { username, symbol } = req.body;
-    var user={username, symbol};
+    var user={username, symbol};//obj
       debugger;
       const watchlistAdded = await User.addToWatchlist(user);
       res.json({ watched: watchlistAdded });
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
+/** DELETE /[username]/watchlist/[symbol] { state } => { watchlist } 
+ * 
+ * Returns {"unwatched": symbol}
+ * 
+ * Authorization required: same-user-as:username
+*/
+
+userRouter.delete(
+  "/removeWatchlist",
+  // ensureCorrectUser,
+  async function (req, res, next) {
+    
+    try {
+      const { username, symbol } = req.body;
+    var user={username, symbol};//obj
+      debugger;
+      const watchlistRemoved = await User.removeFromWatchlist(user);
+      res.json({ unwatched: watchlistRemoved });
     } catch (err) {
       return next(err);
     }

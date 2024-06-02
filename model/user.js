@@ -135,4 +135,34 @@ async function addToWatchlist(Obj) {
   return { watchlist: Obj.symbol };
 }
 
-export { User, get, getComplete, addToWatchlist, register };
+
+/** Remove stock from watchlist: update db, returns undefined.
+   * 
+   * - username: username watching stock
+   * - symbol: stock symbol
+   */
+async function removeFromWatchlist(Obj) {
+  console.log("Remove function called with:", Obj.username, Obj.symbol);
+  const user = await User.findOne({ username: Obj.username });
+  if (!user) throw new NotFoundError(`No username: ${Obj.username}`);
+  console.log("User is found:", Obj.username, Obj.symbol);
+
+  const symbolExists = await User.findOne({
+    username: Obj.username,
+    watchlist: { $in: [Obj.symbol] }
+  });
+
+  if (!symbolExists) {
+    throw new BadRequestError(
+      `Symbol ${Obj.symbol} not found in watchlist of user ${Obj.username}`
+    );
+  }
+
+  const result = await User.updateOne(
+    { username: Obj.username },
+    { $pull: { watchlist: Obj.symbol } }
+  );
+  return { watchlist: Obj.symbol };
+}
+
+export { User, get, getComplete, addToWatchlist, register,removeFromWatchlist };
