@@ -90,13 +90,16 @@ userRouter.get(
  */
 
 userRouter.post(
-  "/:username/watchlist/:symbol",
-  authenticateJWT, 
-  ensureCorrectUser,
+  "/watchlist",
+  // authenticateJWT, 
+  // ensureCorrectUser,
   async function (req, res, next) {
     try {
-      await User.addToWatchlist(req.params.username, req.params.symbol);
-      return res.json({ watched: req.params.symbol });
+      const { username, symbol } = req.body;
+    var user={username, symbol};
+      debugger;
+      const watchlistAdded = await User.addToWatchlist(user);
+      res.json({ watched: watchlistAdded });
     } catch (err) {
       return next(err);
     }
@@ -106,7 +109,7 @@ userRouter.post(
 
 userRouter.post('/token', async (req, res, next) => {
   try {
-    const { username, password } = req.body;
+    const { username } = req.body;
     const token = jwt.sign({ username }, SECRET_KEY);
     res.json({ token });
   } catch (err) {

@@ -106,23 +106,33 @@ userSchema.methods.getUserPortfolioIds = async function () {
  * @param {string} username - username watching stock
  * @param {string} symbol - stock symbol
  */
-async function addToWatchlist(username, symbol) {
-  const user = await User.findOne({ username });
-  if (!user) throw new NotFoundError(`No username: ${username}`);
+async function addToWatchlist(Obj) {
+  console.log("Register function called with:", Obj.username, Obj.symbol);
+  const user = await User.findOne({ username:Obj.username });
+  if (!user) throw new NotFoundError(`No username: ${Obj.username}`);
+  console.log("User is found:", Obj.username, Obj.symbol);
   //This line queries the MongoDB collection users to find a document where the username matches the provided
   //username and where within the watchlist array there is an object with a symbol property matching the provided symbol.
+  // const duplicateCheck = await User.findOne({
+  //   username: Obj.username,
+  //   "watchlist.symbol": symbol,
+  // });
   const duplicateCheck = await User.findOne({
-    username,
-    "watchlist.symbol": symbol,
+    username: Obj.username,
+    watchlist: { $in: [Obj.symbol] }
   });
 
   if (duplicateCheck) {
     throw new BadRequestError(
-      `Symbol ${symbol} already watched by user ${username}`
+      `Symbol ${Obj.symbol} already watched by user ${Obj.username}`
     );
   }
   // Add the symbol to the user's watchlist
-  await User.updateOne({ username }, { $push: { watchlist: { symbol } } });
+  const result=await User.updateOne(
+    { username: Obj.username },
+    { $push: { watchlist: Obj.symbol } }
+  );
+  return { watchlist: Obj.symbol };
 }
 
 export { User, get, getComplete, addToWatchlist, register };
