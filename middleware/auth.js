@@ -3,6 +3,7 @@ const { SECRET_KEY } = require("../config");
 const { UnauthorizedError } = require("../expressError");
 const User = require("../model/user");
 
+
 function authenticateJWT(req, res, next) {
   try {
     const authHeader = req.headers && req.headers.authorization;

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Portfolio from "./portfolio"
 
+const bcrypt = require("bcrypt");
 const {
   NotFoundError,
   BadRequestError
@@ -25,33 +26,29 @@ const User = mongoose.model("User", userSchema);
  * It seems like there's an error in your code because the identifier username is being declared twice,
  * function parameter renamed to avoid the collision:
  **/
-async function register({
-  username,
-  password,
-  email,
-}) {
-  console.log("Register function called with:", username, password, email);
+async function register(Obj) {
+  console.log("Register function called with:", Obj.username, Obj.password, Obj.email);
 
-  const duplicateUser = await User.findOne({ username });
+  const duplicateUser = await User.findOne({username:Obj.username});
   console.log("Duplicate user:", duplicateUser);
-
+debugger;
   if (duplicateUser)
-    throw new BadRequestError(`Duplicate Username: ${username}`);
-
-  const hashedPassword = await bcrypt.hash(password, 10);
+    throw new BadRequestError(`Duplicate Username: ${Obj.username}`);
+debugger;
+  const hashedPassword = await bcrypt.hash(Obj.password, 10);
+  debugger;
   console.log("Hashed password:", hashedPassword);
 
-  const result = await User.insertOne({
-    username,
-    password, 
-    email,
+  const result = await User.create({
+    username: Obj.username,
+    password:Obj.password, 
+    email:Obj.email,
   });
   console.log("Inserted user result:", result);
 
-  const { username: regUsername, email: regEmail } = result.ops[0];
-  console.log("Inserted user:", regUsername, regEmail);
+  console.log('Inserted user result:', result);
 
-  return { regUsername, regEmail };
+  return { username: result.username, email: result.email };
 }
 
 // Define the get function to fetch user data including watchlist

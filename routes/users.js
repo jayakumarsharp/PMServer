@@ -3,6 +3,7 @@ const userRouter = express.Router();
 const { ensureCorrectUser } = require("../middleware/auth");
 require("../expressError");
 const User = require("../model/user");
+import { SECRET_KEY } from '../config';
 
 
 /**
@@ -26,10 +27,10 @@ const User = require("../model/user");
 userRouter.post("/register", async (req, res, next) => {
   try {
     const { username, password, email } = req.body;
-    const newUser = await User.register(username, password, email);
-    // Generate JWT token for the new user
-  const token = jwt.sign({ userId: newUser.id, username: newUser.username }, SECRET_KEY);
-    res.json({ username: newUser.username, email: newUser.email,token });
+    console.log(req.body);
+    var user={username, password, email};
+    const newUser = await User.register(user);
+    res.json({ username: newUser.username, email: newUser.email });
   } catch (err) {
     next(err);
   }
