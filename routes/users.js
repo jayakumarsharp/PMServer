@@ -1,9 +1,12 @@
 const express = require("express");
 const userRouter = express.Router();
-const { ensureCorrectUser } = require("../middleware/auth");
+const { ensureCorrectUser,authenticateJWT } = require("../middleware/auth");
 require("../expressError");
 const User = require("../model/user");
 import { SECRET_KEY } from '../config';
+const jwt = require("jsonwebtoken");
+
+
 
 
 /**
@@ -88,6 +91,7 @@ userRouter.get(
 
 userRouter.post(
   "/:username/watchlist/:symbol",
+  authenticateJWT, 
   ensureCorrectUser,
   async function (req, res, next) {
     try {
@@ -98,6 +102,17 @@ userRouter.post(
     }
   }
 );
+
+
+userRouter.post('/token', async (req, res, next) => {
+  try {
+    const { username, password } = req.body;
+    const token = jwt.sign({ username }, SECRET_KEY);
+    res.json({ token });
+  } catch (err) {
+    next(err);
+  }
+});
 
 
 
