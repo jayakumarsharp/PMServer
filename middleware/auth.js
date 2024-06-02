@@ -7,11 +7,14 @@ const User = require("../model/user");
 function authenticateJWT(req, res, next) {
   try {
     const authHeader = req.headers && req.headers.authorization;
-    console.log(authHeader);
+    console.log("authHeader:",authHeader);
     debugger;
     if (authHeader) {
       const token = authHeader.replace(/^[Bb]earer /, "").trim();
+      debugger;
       res.locals.user = jwt.verify(token, SECRET_KEY);
+      debugger;
+      console.log("token:",token);
     }
     return next();
   } catch (err) {
@@ -31,7 +34,8 @@ function ensureLoggedIn(req, res, next) {
 function ensureCorrectUser(req, res, next) {
   try {
     const user = res.locals.user;
-    if (!(user && user.username === req.params.username)) {
+    debugger;
+    if (!(user && user.username === req.body.username)) {
       throw new UnauthorizedError();
     }
     return next();

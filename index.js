@@ -13,6 +13,7 @@ import { authenticateJWT } from './middleware/auth';
 
 
 
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
@@ -20,14 +21,15 @@ const io = socketIo(server);
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.json());
+//Using app.use(authenticateJWT); in your main application file configures your Express app to apply the 
+//authenticateJWT middleware to all routes. This means that every incoming request 
+//to your server will pass through this middleware function before reaching any route handlers.
+app.use(authenticateJWT);
 
 
 // Connect to MongoDB
 connectDB();
 
-
-// Register route without authentication
-app.use('/api/users', userRouter);
 
 
 // Use authenticateJWT for all routes that need authentication
@@ -37,6 +39,7 @@ app.use(authenticateJWT);
 app.use('/api/security', securityapiRouter);
 app.use('/api/price', priceapiRouter);
 app.use('/api/upload', uploadController);
+app.use('/api/users', userRouter);
 
 
 
@@ -55,6 +58,6 @@ app.get("/api/protected", authenticateJWT, (req, res) => {
 
 
 
-server.listen(3003, () => {
+server.listen(3004, () => {
     console.log('Server is running on port 3003');
 });

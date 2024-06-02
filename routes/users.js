@@ -71,10 +71,11 @@ userRouter.get(
 
 userRouter.get(
   "/:username/complete",
-  // ensureCorrectUser,
+  //  ensureCorrectUser,
   async function (req, res, next) {
     try {
       const user = await User.getComplete(req.params.username);
+      debugger;
       return res.json({ user });
     } catch (err) {
       return next(err);
@@ -91,8 +92,7 @@ userRouter.get(
 
 userRouter.post(
   "/watchlist",
-  // authenticateJWT, 
-  // ensureCorrectUser,
+  ensureCorrectUser,
   async function (req, res, next) {
     try {
       const { username, symbol } = req.body;
