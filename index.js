@@ -9,6 +9,7 @@ import securityapiRouter from './routes/securityRouter';
 import priceapiRouter from './routes/priceRouter';
 import uploadController from './routes/fileUploadRouter';
 import userRouter from './routes/users';
+import portfolioRouter from './routes/portfolio';
 import { authenticateJWT } from './middleware/auth'; 
 
 
@@ -31,24 +32,21 @@ app.use(authenticateJWT);
 connectDB();
 
 
-
-// Use authenticateJWT for all routes that need authentication
-app.use(authenticateJWT);
-
 // Define routes that need authentication
 app.use('/api/security', securityapiRouter);
 app.use('/api/price', priceapiRouter);
 app.use('/api/upload', uploadController);
 app.use('/api/users', userRouter);
+app.use('/api/portfolio', portfolioRouter);
 
 
 
   // Error handler
-  app.use((err, req, res, next) => {
-    const status = err.status || 500;
-    const message = err.message || 'Internal Server Error';
-    res.status(status).json({ error: message });
-  });
+  // app.use((err, req, res, next) => {
+  //   const status = err.status || 500;
+  //   const message = err.message || 'Internal Server Error';
+  //   res.status(status).json({ error: message });
+  // });
 
 
 // Protected route
