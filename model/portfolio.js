@@ -10,7 +10,14 @@ const portfolioSchema = new mongoose.Schema({
 const Portfolio = mongoose.model("Portfolio", portfolioSchema);
 
 
-
+ /** Create a portfolio, update db, return new portfolio data.
+   * 
+   * data should be { name, cash, notes, username }
+   * 
+   * Returns { id, name, cash, notes, username }
+   * 
+   * Throws BadRequestError if portfolio already exists for user
+   */
 async function registerPortfolio(Obj) {
   try {
     const { name, cash, notes, username } = Obj;
@@ -41,4 +48,26 @@ async function registerPortfolio(Obj) {
   }
 }
 
-export { registerPortfolio};
+
+/** Given a portfolio id, return data about portfolio
+   * 
+   * Returns { id, name, cash, notes, username, holdings }
+   *   where holdings is [{ id, symbol, shares_owned, cost_basis, target_percentage, goal, portfolio_id }, ...]
+   * 
+   * Throws NotFoundError if not found.
+   */
+async function get(name) {
+  try {
+    const exsistingPortfolio = Portfolio.findOne({ name })
+      .lean();
+    if (!exsistingPortfolio) {
+      throw new NotFoundError(`No portfolio: ${name}`);
+    }
+    return exsistingPortfolio;
+  } catch (error) {
+    // Handle any errors that occur during the process
+    throw new Error(`Error while fetching portfolio: ${error.message}`);
+  }
+}
+
+export { Portfolio,registerPortfolio,get};
