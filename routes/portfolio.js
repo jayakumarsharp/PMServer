@@ -80,8 +80,7 @@ portfolioRouter.patch("/:id", async function (req, res, next) {
     const id = req.params.id;
     console.log(id);
     debugger;
-    const portfolioUpdated = await portfolio.findByIdAndUpdate(id,req.body,{ new: true, runValidators: true });
-    // const portfolio = await portfolio.updatePortfolio(id,req.body);
+    const portfolioUpdated = await portfolio.updatePortfolio(id,req.body);
     return res.json({ portfolioUpdated });
   } catch (err) {
     return next(err);
