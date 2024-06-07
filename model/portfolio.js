@@ -68,6 +68,38 @@ async function get(name) {
     // Handle any errors that occur during the process
     throw new Error(`Error while fetching portfolio: ${error.message}`);
   }
+  
 }
 
-export { Portfolio,registerPortfolio,get};
+
+/**
+ * Update portfolio data with `data`.
+ * 
+ * This is a "partial update" --- it's fine if data doesn't contain all the 
+ * fields; this only changes provided ones.
+ * 
+ * Data can include: { name, cash, notes }
+ * 
+ * Returns { id, name, cash, notes, username }
+ * 
+ * Throws NotFoundError if not found.
+ */
+ async function  updatePortfolio(id,newPortfolio) {
+  console.log(newPortfolio);
+
+  const updatedPortfolio = await Portfolio.findByIdAndUpdate(
+    {_id:id},
+    newPortfolio,
+    { new: true, runValidators: true }
+  );
+debugger;
+  if (!updatedPortfolio) {
+    throw new NotFoundError(`No portfolio: ${ newPortfolio.name}`);
+  }
+
+  return updatedPortfolio.toObject();
+}
+
+
+
+export { Portfolio,registerPortfolio,get,updatePortfolio};

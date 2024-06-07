@@ -58,9 +58,40 @@ portfolioRouter.post("/createPortfolio", async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+  
 });
+
+
+
+/** PATCH /[id] { fld1, fld2, ... } => { portfolio }
+ *
+ * Patches portfolio data.
+ *
+ * fields can be: { name, cash, notes, username }
+ *
+ * Returns { id, name, cash, notes, username }
+ *
+ * Authorization required: user must own portfolio
+ */
+
+portfolioRouter.patch("/:id", async function (req, res, next) {
+  try {
+    debugger;
+    const id = req.params.id;
+    console.log(id);
+    debugger;
+    const portfolioUpdated = await portfolio.findByIdAndUpdate(id,req.body,{ new: true, runValidators: true });
+    // const portfolio = await portfolio.updatePortfolio(id,req.body);
+    return res.json({ portfolioUpdated });
+  } catch (err) {
+    return next(err);
+  }
+})
+
 
 
  
 
-export default portfolioRouter;
+// export default portfolioRouter;
+
+module.exports = portfolioRouter;
