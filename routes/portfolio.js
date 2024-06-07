@@ -88,6 +88,23 @@ portfolioRouter.patch("/:id", async function (req, res, next) {
 })
 
 
+/** DELETE /[id]  =>  { deleted: id }
+ *
+ * Authorization: user must own portfolio
+ */
+
+portfolioRouter.delete("/:id", async function (req, res, next) {
+  try {
+    const id = req.params.id;
+    const portfolioDeleted = await portfolio.remove(id);
+    debugger;
+    res.status(201).json(portfolioDeleted);
+  } catch (err) {
+    return next(err);
+  }
+})
+
+
 
  
 

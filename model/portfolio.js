@@ -100,6 +100,20 @@ debugger;
   return updatedPortfolio.toObject();
 }
 
+ /** Delete given portfolio from datbase; returns undefined.
+   * 
+   * Throws NotFoundError if portfolio not found.
+   */
+async function remove(id) {
+  const deletedPortfolio = await Portfolio.findByIdAndDelete(id);
+
+  if (!deletedPortfolio) {
+    throw new NotFoundError(`No portfolio: ${id}`);
+  }
+
+  return deletedPortfolio.toObject() ;
+}
 
 
-export { Portfolio,registerPortfolio,get,updatePortfolio};
+
+export { Portfolio,registerPortfolio,get,updatePortfolio,remove};
