@@ -10,6 +10,7 @@ import priceapiRouter from './routes/priceRouter';
 import uploadController from './routes/fileUploadRouter';
 import userRouter from './routes/users';
 import portfolioRouter from './routes/portfolio';
+import holdingRouter from './routes/holdings';
 import { authenticateJWT } from './middleware/auth'; 
 
 
@@ -38,6 +39,7 @@ app.use('/api/price', priceapiRouter);
 app.use('/api/upload', uploadController);
 app.use('/api/users', userRouter);
 app.use('/api/portfolio', portfolioRouter);
+app.use('/api/holding', holdingRouter);
 
 
 
