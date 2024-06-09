@@ -81,6 +81,7 @@ async function get(username) {
 // Define the getComplete function to fetch user data including watchlist and portfolios
 async function getComplete(username) {
   try {
+    debugger;
     const user = await User.findOne({ username })
       .select("username,email,watchlist")
       .lean();

@@ -76,6 +76,7 @@ userRouter.get(
   //  ensureCorrectUser,
   async function (req, res, next) {
     try {
+      console.log('called compkete')
       const user = await User.getComplete(req.params.username);
       debugger;
       return res.json({ user });

@@ -7,12 +7,9 @@ function authenticateJWT(req, res, next) {
   try {
     const authHeader = req.headers && req.headers.authorization;
     console.log("authHeader:", authHeader);
-    debugger;
     if (authHeader) {
       const token = authHeader.replace(/^[Bb]earer /, "").trim();
-      debugger;
       res.locals.user = jwt.verify(token, SECRET_KEY);
-      debugger;
       console.log("token:", token);
     }
     return next();
@@ -33,7 +30,6 @@ function ensureLoggedIn(req, res, next) {
 function ensureCorrectUser(req, res, next) {
   try {
     const user = res.locals.user;
-    debugger;
     if (!(user && user.username === req.body.username)) {
       throw new UnauthorizedError();
     }

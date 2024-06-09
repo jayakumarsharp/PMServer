@@ -48,8 +48,8 @@ app.use("/api/security", securityapiRouter);
 app.use("/api/price", priceapiRouter);
 app.use("/api/upload", uploadController);
 app.use("/api/users", userRouter);
-app.use("/api/portfolio", portfolioRouter);
-app.use("/api/holding", holdingRouter);
+app.use("/api/portfolios", portfolioRouter);
+app.use("/api/holdings", holdingRouter);
 
 // Error handler
 // app.use((err, req, res, next) => {
