@@ -9,5 +9,5 @@ const ALPHAVANTAGE_KEY = process.env.ALPHAVANTAGE_KEY ||"RWS8W5Z52IH2R05L";
 console.log("SECRET_KEY:".yellow, SECRET_KEY);
 
 module.exports = {
-    SECRET_KEY,
+    SECRET_KEY
   };

@@ -3,6 +3,10 @@ const userRouter = express.Router();
 const { ensureCorrectUser } = require("../middleware/auth");
 require("../expressError");
 const User = require("../model/user");
+import { SECRET_KEY } from '../config';
+const jwt = require("jsonwebtoken");
+
+
 
 
 /**
@@ -26,10 +30,10 @@ const User = require("../model/user");
 userRouter.post("/register", async (req, res, next) => {
   try {
     const { username, password, email } = req.body;
-    const newUser = await User.register(username, password, email);
-    // Generate JWT token for the new user
-  const token = jwt.sign({ userId: newUser.id, username: newUser.username }, SECRET_KEY);
-    res.json({ username: newUser.username, email: newUser.email,token });
+    console.log(req.body);
+    var user={username, password, email};
+    const newUser = await User.register(user);
+    res.json({ username: newUser.username, email: newUser.email });
   } catch (err) {
     next(err);
   }
@@ -67,10 +71,11 @@ userRouter.get(
 
 userRouter.get(
   "/:username/complete",
-  // ensureCorrectUser,
+  //  ensureCorrectUser,
   async function (req, res, next) {
     try {
       const user = await User.getComplete(req.params.username);
+      debugger;
       return res.json({ user });
     } catch (err) {
       return next(err);
@@ -86,17 +91,55 @@ userRouter.get(
  */
 
 userRouter.post(
-  "/:username/watchlist/:symbol",
+  "/watchlist",
   ensureCorrectUser,
   async function (req, res, next) {
     try {
-      await User.addToWatchlist(req.params.username, req.params.symbol);
-      return res.json({ watched: req.params.symbol });
+      const { username, symbol } = req.body;
+    var user={username, symbol};//obj
+      debugger;
+      const watchlistAdded = await User.addToWatchlist(user);
+      res.json({ watched: watchlistAdded });
     } catch (err) {
       return next(err);
     }
   }
 );
+
+/** DELETE /[username]/watchlist/[symbol] { state } => { watchlist } 
+ * 
+ * Returns {"unwatched": symbol}
+ * 
+ * Authorization required: same-user-as:username
+*/
+
+userRouter.delete(
+  "/removeWatchlist",
+  // ensureCorrectUser,
+  async function (req, res, next) {
+    
+    try {
+      const { username, symbol } = req.body;
+    var user={username, symbol};//obj
+      debugger;
+      const watchlistRemoved = await User.removeFromWatchlist(user);
+      res.json({ unwatched: watchlistRemoved });
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
+
+userRouter.post('/token', async (req, res, next) => {
+  try {
+    const { username } = req.body;
+    const token = jwt.sign({ username }, SECRET_KEY);
+    res.json({ token });
+  } catch (err) {
+    next(err);
+  }
+});
 
 
 
