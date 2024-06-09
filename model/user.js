@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Portfolio from "./portfolio"
+const Portfolio = require("../model/portfolio");
 
 const bcrypt = require("bcrypt");
 const {
@@ -70,13 +70,17 @@ async function get(username) {
 // Define the getComplete function to fetch user data including watchlist and portfolios
 async function getComplete(username) {
   try {
-    const user = await User.findOne({ username })
-      .select("username,email,watchlist")
-      .lean();
+    const user = await User.findOne({ username }).lean();
+      console.log(user.username);
+
+  
+      debugger;
     // const watchlist = User.watchlist;
-    const portfolios = await Portfolio.find({ _id: { $in: user.portfolios } });
-    // Add the watchlist and portfolios to the user object
-    // user.watchlist = watchlist;
+    const portfolios = await Portfolio.Portfolio.findOne({username: username});
+    console.log(portfolios);
+    debugger;
+    // console.log(portfolios);
+    // // Add the watchlist and portfolios to the user object
     user.portfolios = portfolios;
     return user;
   } catch (error) {
