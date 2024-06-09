@@ -43,6 +43,21 @@ holdingRouter.get("/:id", async function (req, res, next) {
     }
   });
 
+  /** DELETE /[id]  =>  { deleted: id }
+ *
+ * Authorization: user must own portfolio
+ */
+
+router.delete("/:id", ensureCorrectHolding, async function (req, res, next) {
+    try {
+    
+      await holding.remove(req.params.id);
+      return res.json({ deleted: +req.params.id });
+    } catch (err) {
+      return next(err);
+    }
+  })
+
   // export default portfolioRouter;
 
 module.exports = holdingRouter;

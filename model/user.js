@@ -1,5 +1,10 @@
 import mongoose from "mongoose";
+<<<<<<< HEAD
+const Portfolio = require("../model/portfolio");
+
+=======
 import Portfolio from "./portfolio";
+>>>>>>> b4b6ee69b81ea132e953003dbc602f2de3e0eeba
 const bcrypt = require("bcrypt");
 const { NotFoundError, BadRequestError } = require("../expressError");
 
@@ -81,14 +86,24 @@ async function get(username) {
 // Define the getComplete function to fetch user data including watchlist and portfolios
 async function getComplete(username) {
   try {
+<<<<<<< HEAD
+    const user = await User.findOne({ username }).lean();
+      console.log(user.username);
+
+  
+      debugger;
+=======
     debugger;
     const user = await User.findOne({ username })
       .select("username,email,watchlist")
       .lean();
+>>>>>>> b4b6ee69b81ea132e953003dbc602f2de3e0eeba
     // const watchlist = User.watchlist;
-    const portfolios = await Portfolio.find({ _id: { $in: user.portfolios } });
-    // Add the watchlist and portfolios to the user object
-    // user.watchlist = watchlist;
+    const portfolios = await Portfolio.Portfolio.findOne({username: username});
+    console.log(portfolios);
+    debugger;
+    // console.log(portfolios);
+    // // Add the watchlist and portfolios to the user object
     user.portfolios = portfolios;
     return user;
   } catch (error) {

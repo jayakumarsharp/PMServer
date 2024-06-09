@@ -65,7 +65,22 @@ async function create(Obj) {
   } catch (error) {
     throw error; // Re-throw the error for higher-level error handling
   }
+
+
+  /** Delete given holding from database; returns undefined.
+   * 
+   * Throws NotFoundError if holding not found.
+   */
+async function remove(id) {
+  const deletedHolding = await Holding.findByIdAndDelete(id);
+
+  if (!deletedHolding) {
+    throw new NotFoundError(`No holdings: ${id}`);
+  }
+
+  return deletedHolding.toObject() ;
 }
+
 
 
 
@@ -92,4 +107,4 @@ async function get(id) {
 
 
 
-export { create,get };
+export { create,get ,remove};

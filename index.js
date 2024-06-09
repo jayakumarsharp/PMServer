@@ -44,6 +44,21 @@ app.use(express.json());
 connectDB();
 
 // Define routes that need authentication
+app.use('/api/security', securityapiRouter);
+app.use('/api/price', priceapiRouter);
+app.use('/api/upload', uploadController);
+app.use('/api/users', userRouter);
+app.use('/api/portfolio', portfolioRouter);
+app.use('/api/holding', holdingRouter);
+
+
+
+  // Error handler
+  app.use((err, req, res, next) => {
+    const status = err.status || 500;
+    const message = err.message || 'Internal Server Error';
+    res.status(status).json({ error: message });
+  });
 app.use("/api/security", securityapiRouter);
 app.use("/api/price", priceapiRouter);
 app.use("/api/upload", uploadController);
