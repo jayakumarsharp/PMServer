@@ -3,18 +3,17 @@ const { SECRET_KEY } = require("../config");
 const { UnauthorizedError } = require("../expressError");
 const User = require("../model/user");
 
-
 function authenticateJWT(req, res, next) {
   try {
     const authHeader = req.headers && req.headers.authorization;
-    console.log("authHeader:",authHeader);
+    console.log("authHeader:", authHeader);
     debugger;
     if (authHeader) {
       const token = authHeader.replace(/^[Bb]earer /, "").trim();
       debugger;
       res.locals.user = jwt.verify(token, SECRET_KEY);
       debugger;
-      console.log("token:",token);
+      console.log("token:", token);
     }
     return next();
   } catch (err) {
