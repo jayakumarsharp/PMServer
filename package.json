@@ -37,7 +37,7 @@
     "path": "^0.12.7",
     "socket.io": "^4.7.5",
     "yahoo-finance": "^0.3.8",
-    "yahoo-finance2": "^2.11.2"
+    "yahoo-finance2": "^2.11.3"
   },
   "devDependencies": {
     "@babel/plugin-transform-runtime": "^7.24.6"

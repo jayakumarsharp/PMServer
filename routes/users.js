@@ -3,8 +3,10 @@ const userRouter = express.Router();
 const { ensureCorrectUser } = require("../middleware/auth");
 require("../expressError");
 const User = require("../model/user");
-import { SECRET_KEY } from '../config';
 const jwt = require("jsonwebtoken");
+const { createToken } = require("../helpers/tokens");
+
+const jsonschema = require("jsonschema");
 
 
 
@@ -74,7 +76,7 @@ userRouter.get(
   //  ensureCorrectUser,
   async function (req, res, next) {
     try {
-      debugger;
+      console.log('called compkete')
       const user = await User.getComplete(req.params.username);
       debugger;
       return res.json({ user });
@@ -134,9 +136,14 @@ userRouter.delete(
 
 userRouter.post('/token', async (req, res, next) => {
   try {
-    const { username } = req.body;
-    const token = jwt.sign({ username }, SECRET_KEY);
-    res.json({ token });
+    // const { username } = req.body;
+    // const token = jwt.sign({ username }, SECRET_KEY);
+    // res.json({ token });
+    console.log('login called')
+    const { username, password } = req.body;
+    const user = await User.authenticate(username, password);
+    const token = createToken(user);
+    return res.json({ token });
   } catch (err) {
     next(err);
   }

@@ -76,10 +76,8 @@ portfolioRouter.post("/createPortfolio", async (req, res, next) => {
 
 portfolioRouter.patch("/:id", async function (req, res, next) {
   try {
-    debugger;
     const id = req.params.id;
     console.log(id);
-    debugger;
     const portfolioUpdated = await portfolio.updatePortfolio(id,req.body);
     return res.json({ portfolioUpdated });
   } catch (err) {
@@ -97,7 +95,6 @@ portfolioRouter.delete("/:id", async function (req, res, next) {
   try {
     const id = req.params.id;
     const portfolioDeleted = await portfolio.remove(id);
-    debugger;
     res.status(201).json(portfolioDeleted);
   } catch (err) {
     return next(err);

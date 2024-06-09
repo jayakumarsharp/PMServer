@@ -1,13 +1,12 @@
 import mongoose from "mongoose";
+<<<<<<< HEAD
 const Portfolio = require("../model/portfolio");
 
+=======
+import Portfolio from "./portfolio";
+>>>>>>> b4b6ee69b81ea132e953003dbc602f2de3e0eeba
 const bcrypt = require("bcrypt");
-const {
-  NotFoundError,
-  BadRequestError
-} = require("../expressError");
-
-
+const { NotFoundError, BadRequestError } = require("../expressError");
 
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
@@ -27,28 +26,45 @@ const User = mongoose.model("User", userSchema);
  * function parameter renamed to avoid the collision:
  **/
 async function register(Obj) {
-  console.log("Register function called with:", Obj.username, Obj.password, Obj.email);
+  console.log(
+    "Register function called with:",
+    Obj.username,
+    Obj.password,
+    Obj.email
+  );
 
-  const duplicateUser = await User.findOne({username:Obj.username});
+  const duplicateUser = await User.findOne({ username: Obj.username });
   console.log("Duplicate user:", duplicateUser);
-debugger;
+
   if (duplicateUser)
     throw new BadRequestError(`Duplicate Username: ${Obj.username}`);
-debugger;
   const hashedPassword = await bcrypt.hash(Obj.password, 10);
-  debugger;
   console.log("Hashed password:", hashedPassword);
 
   const result = await User.create({
     username: Obj.username,
-    password:Obj.password, 
-    email:Obj.email,
+    password: hashedPassword,
+    email: Obj.email,
   });
   console.log("Inserted user result:", result);
 
-  console.log('Inserted user result:', result);
-
   return { username: result.username, email: result.email };
+}
+
+async function authenticate(username, password) {
+  // try to find the user first
+  console.log(username);
+  const result = await User.findOne({ username: username });
+  if (result) {
+    // compare hashed password to a new hash from password
+    const isValid = await bcrypt.compare(password, result.password);
+    if (isValid === true) {
+      delete result.password;
+      return result;
+    }
+  }
+
+  throw new UnauthorizedError("Invalid username/password");
 }
 
 // Define the get function to fetch user data including watchlist
@@ -70,11 +86,18 @@ async function get(username) {
 // Define the getComplete function to fetch user data including watchlist and portfolios
 async function getComplete(username) {
   try {
+<<<<<<< HEAD
     const user = await User.findOne({ username }).lean();
       console.log(user.username);
 
   
       debugger;
+=======
+    debugger;
+    const user = await User.findOne({ username })
+      .select("username,email,watchlist")
+      .lean();
+>>>>>>> b4b6ee69b81ea132e953003dbc602f2de3e0eeba
     // const watchlist = User.watchlist;
     const portfolios = await Portfolio.Portfolio.findOne({username: username});
     console.log(portfolios);
@@ -112,7 +135,7 @@ userSchema.methods.getUserPortfolioIds = async function () {
  */
 async function addToWatchlist(Obj) {
   console.log("Register function called with:", Obj.username, Obj.symbol);
-  const user = await User.findOne({ username:Obj.username });
+  const user = await User.findOne({ username: Obj.username });
   if (!user) throw new NotFoundError(`No username: ${Obj.username}`);
   console.log("User is found:", Obj.username, Obj.symbol);
   //This line queries the MongoDB collection users to find a document where the username matches the provided
@@ -123,7 +146,7 @@ async function addToWatchlist(Obj) {
   // });
   const duplicateCheck = await User.findOne({
     username: Obj.username,
-    watchlist: { $in: [Obj.symbol] }
+    watchlist: { $in: [Obj.symbol] },
   });
 
   if (duplicateCheck) {
@@ -132,19 +155,18 @@ async function addToWatchlist(Obj) {
     );
   }
   // Add the symbol to the user's watchlist
-  const result=await User.updateOne(
+  const result = await User.updateOne(
     { username: Obj.username },
     { $push: { watchlist: Obj.symbol } }
   );
   return { watchlist: Obj.symbol };
 }
 
-
 /** Remove stock from watchlist: update db, returns undefined.
-   * 
-   * - username: username watching stock
-   * - symbol: stock symbol
-   */
+ *
+ * - username: username watching stock
+ * - symbol: stock symbol
+ */
 async function removeFromWatchlist(Obj) {
   console.log("Remove function called with:", Obj.username, Obj.symbol);
   const user = await User.findOne({ username: Obj.username });
@@ -153,7 +175,7 @@ async function removeFromWatchlist(Obj) {
 
   const symbolExists = await User.findOne({
     username: Obj.username,
-    watchlist: { $in: [Obj.symbol] }
+    watchlist: { $in: [Obj.symbol] },
   });
 
   if (!symbolExists) {
@@ -169,4 +191,12 @@ async function removeFromWatchlist(Obj) {
   return { watchlist: Obj.symbol };
 }
 
-export { User, get, getComplete, addToWatchlist, register,removeFromWatchlist };
+export {
+  User,
+  get,
+  getComplete,
+  addToWatchlist,
+  register,
+  removeFromWatchlist,
+  authenticate,
+};
