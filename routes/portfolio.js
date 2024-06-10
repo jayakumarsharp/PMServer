@@ -3,10 +3,6 @@ const portfolioRouter = express.Router();
 const portfolio = require("../model/portfolio");
 
 
-
-
-
-
 /** GET /[id] => { portfolio }
  * 
  * Returns { id, name, cash, notes, username, holdings }

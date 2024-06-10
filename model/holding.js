@@ -11,13 +11,11 @@ const holdingSchema = new mongoose.Schema({
   portfolio_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Portfolio",
-    required: true
-  }
+    required: true,
+  },
 });
 
 const Holding = mongoose.model("Holding", holdingSchema);
-
-
 
 /** Create a holding, update db, return new holding data.
  *
@@ -41,7 +39,7 @@ async function create(Obj) {
     } = Obj;
 
     // Check if portfolio exists
-    const portfolio = await Portfolio.Portfolio.findOne({_id: portfolio_id});
+    const portfolio = await Portfolio.Portfolio.findOne({ _id: portfolio_id });
     if (!portfolio)
       throw new NotFoundError(`Invalid portfolio: ${portfolio_id}`);
 
@@ -57,7 +55,7 @@ async function create(Obj) {
       cost_basis,
       target_percentage,
       goal,
-      portfolio_id
+      portfolio_id,
     });
 
     // Return created portfolio
@@ -65,12 +63,11 @@ async function create(Obj) {
   } catch (error) {
     throw error; // Re-throw the error for higher-level error handling
   }
-
-
-  /** Delete given holding from database; returns undefined.
-   * 
-   * Throws NotFoundError if holding not found.
-   */
+}
+/** Delete given holding from database; returns undefined.
+ *
+ * Throws NotFoundError if holding not found.
+ */
 async function remove(id) {
   const deletedHolding = await Holding.findByIdAndDelete(id);
 
@@ -78,22 +75,18 @@ async function remove(id) {
     throw new NotFoundError(`No holdings: ${id}`);
   }
 
-  return deletedHolding.toObject() ;
+  return deletedHolding.toObject();
 }
 
-
-
-
- /** Given a holding id, return data about the holding 
-   * 
-   * Returns { id, symbol, shares_owned, cost_basis, target_percentage, goal, portfolio_id }
-   * 
-   * Throws NotFoundError if not found.
-   */
+/** Given a holding id, return data about the holding
+ *
+ * Returns { id, symbol, shares_owned, cost_basis, target_percentage, goal, portfolio_id }
+ *
+ * Throws NotFoundError if not found.
+ */
 async function get(id) {
   try {
-    const exsistingHolding = Holding.findOne({ _id: id })
-      .lean();
+    const exsistingHolding = Holding.findOne({ _id: id }).lean();
     if (!exsistingHolding) {
       throw new NotFoundError(`No portfolio: ${id}`);
     }
@@ -102,9 +95,6 @@ async function get(id) {
     // Handle any errors that occur during the process
     throw new Error(`Error while fetching portfolio: ${error.message}`);
   }
-  
 }
 
-
-
-export { create,get ,remove};
+export { create, get, remove };
