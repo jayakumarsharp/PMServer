@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Portfolio from "./portfolio";
+import { Portfolio } from "./portfolio";
 const bcrypt = require("bcrypt");
 const { NotFoundError, BadRequestError } = require("../expressError");
 
@@ -82,18 +82,17 @@ async function get(username) {
 async function getComplete(username) {
   try {
     const user = await User.findOne({ username: username })
-    .select("username,email,watchlist")
-    .lean();
+      .select("username,email,watchlist")
+      .lean();
     console.log("get complete " + user);
-    const watchlist = User.watchlist;
     const portfolios = await Portfolio.findOne({
-      username: username,
+      username,
     });
-    debugger;
-    // console.log("portfolios" + portfolios);
+
+    console.log("portfolios" + portfolios);
     // // console.log(portfolios);
     // // // Add the watchlist and portfolios to the user object
-    // user.portfolios = portfolios;
+    user.portfolios = portfolios;
     return user;
   } catch (error) {
     throw new Error(
