@@ -92,7 +92,6 @@ async function get(name) {
     newPortfolio,
     { new: true, runValidators: true }
   );
-debugger;
   if (!updatedPortfolio) {
     throw new NotFoundError(`No portfolio: ${ newPortfolio.name}`);
   }

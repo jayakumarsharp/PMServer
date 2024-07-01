@@ -11,7 +11,7 @@ import uploadController from "./routes/fileUploadRouter";
 import userRouter from "./routes/users";
 import portfolioRouter from "./routes/portfolio";
 import holdingRouter from "./routes/holdings";
-import { authenticateJWT } from "./middleware/auth";
+//import { authenticateJWT } from "./middleware/auth";
 
 const app = express();
 const server = http.createServer(app);
@@ -19,19 +19,19 @@ const io = socketIo(server);
 
 app.use(cors());
 
-app.all("*", function (req, res, next) {
-  // check header or url parameters or post parameters for token
-  if (
-    ["/api/users/token", "/api/users/register"].indexOf(req.originalUrl) < 0
-  ) {
-    console.log("token  called" + req.originalUrl);
+// app.all("*", function (req, res, next) {
+//   // check header or url parameters or post parameters for token
+//   if (
+//     ["/api/users/token", "/api/users/register"].indexOf(req.originalUrl) < 0
+//   ) {
+//     console.log("token  called" + req.originalUrl);
 
-    authenticateJWT(req, res, next);
-  } else {
-    console.log("not used");
-    next();
-  }
-});
+//     authenticateJWT(req, res, next);
+//   } else {
+//     console.log("not used");
+//     next();
+//   }
+// });
 
 app.use(bodyParser.json());
 app.use(express.json());
@@ -74,9 +74,9 @@ app.use("/api/holdings", holdingRouter);
 // });
 
 // Protected route
-app.get("/api/protected", authenticateJWT, (req, res) => {
-  res.json({ message: "You are authorized!" });
-});
+// app.get("/api/protected", authenticateJWT, (req, res) => {
+//   res.json({ message: "You are authorized!" });
+// });
 
 server.listen(3003, () => {
   console.log("Server is running on port 3003");

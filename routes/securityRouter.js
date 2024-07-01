@@ -6,6 +6,7 @@ const securityapiRouter = express.Router();
 
 securityapiRouter.get('/securities', async (req, res) => {
     try {
+      console.log('called sec api')
         const security = await securities();
         res.json(security);
     } catch (err) {
@@ -43,6 +44,7 @@ securityapiRouter.post('/search', async (req, res) => {
 securityapiRouter.post('/historical', async (req, res) => {
     try {
         const query = req.body.name;
+        console.log(query);
         const queryOptions = { period1: '2000-01-01', interval: '1d', events: 'history', includeAdjustedClose: true };
         const result1 = await yahooFinance.historical(query, queryOptions);
         console.log('data arrived');

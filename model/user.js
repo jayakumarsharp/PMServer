@@ -85,7 +85,7 @@ async function getComplete(username) {
       .select("username,email,watchlist")
       .lean();
     console.log("get complete " + user);
-    const portfolios = await Portfolio.findOne({
+    const portfolios = await Portfolio.find({
       username,
     });
 
