@@ -1,6 +1,6 @@
 import express from 'express';
 import yahooFinance from 'yahoo-finance2';
-import { securities, createsecurity, updateSecurityById, getSecurityById } from '../services/securityservice';
+import { securities, updateSecurity,  getSecurityById } from '../services/securityservice';
 
 const securityapiRouter = express.Router();
 
@@ -14,6 +14,20 @@ securityapiRouter.get('/securities', async (req, res) => {
         res.status(500).send('Server Error');
     }
 });
+
+
+
+securityapiRouter.post('/updateSecuritydata', async (req, res) => {
+  try {
+      const security = await updateSecurity(req.body);
+        res.json(security);
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server Error');
+  }
+});
+
+
 
 securityapiRouter.post('/getchart', async (req, res) => {
     try {
@@ -95,8 +109,9 @@ securityapiRouter.post('/historical', async (req, res) => {
 
 securityapiRouter.post('/quoteSummary', async (req, res) => {
     try {
-        const search = await yahooFinance.quoteSummary(req.body.name);
-        res.json(search);
+        const search = await yahooFinance.quoteSummary(req.body.symbol);
+        console.log(search);
+         res.json(search);
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server Error');

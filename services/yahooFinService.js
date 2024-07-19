@@ -2,8 +2,10 @@ import yahooFinance from 'yahoo-finance2';
 
 async function quote(sec) {
     console.log(sec);
+
     var res = await yahooFinance.quote(sec);
     console.log(res);
+    
     const data = res;
     return data;
 }

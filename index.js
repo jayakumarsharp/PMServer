@@ -11,7 +11,13 @@ import uploadController from "./routes/fileUploadRouter";
 import userRouter from "./routes/users";
 import portfolioRouter from "./routes/portfolio";
 import holdingRouter from "./routes/holdings";
-//import { authenticateJWT } from "./middleware/auth";
+import portfoliotransactionsRouter from "./routes/portfoliotransactionsRouter";
+import heatMapRouter from "./routes/heatMapRouter";
+
+
+
+import { authenticateJWT } from "./middleware/auth";
+require("./Cron/cronjob");
 
 const app = express();
 const server = http.createServer(app);
@@ -19,19 +25,19 @@ const io = socketIo(server);
 
 app.use(cors());
 
-// app.all("*", function (req, res, next) {
-//   // check header or url parameters or post parameters for token
-//   if (
-//     ["/api/users/token", "/api/users/register"].indexOf(req.originalUrl) < 0
-//   ) {
-//     console.log("token  called" + req.originalUrl);
+app.all("*", function (req, res, next) {
+  // check header or url parameters or post parameters for token
+  if (
+    ["/api/users/token", "/api/users/register"].indexOf(req.originalUrl) < 0
+  ) {
+    console.log("token  called" + req.originalUrl);
 
-//     authenticateJWT(req, res, next);
-//   } else {
-//     console.log("not used");
-//     next();
-//   }
-// });
+    authenticateJWT(req, res, next);
+  } else {
+    console.log("not used");
+    next();
+  }
+});
 
 app.use(bodyParser.json());
 app.use(express.json());
@@ -44,27 +50,21 @@ app.use(express.json());
 connectDB();
 
 // Define routes that need authentication
-app.use('/api/security', securityapiRouter);
-app.use('/api/price', priceapiRouter);
-app.use('/api/upload', uploadController);
-app.use('/api/users', userRouter);
-app.use('/api/portfolio', portfolioRouter);
-app.use('/api/holding', holdingRouter);
 
-
-
-  // Error handler
-  app.use((err, req, res, next) => {
-    const status = err.status || 500;
-    const message = err.message || 'Internal Server Error';
-    res.status(status).json({ error: message });
-  });
+// Error handler
+app.use((err, req, res, next) => {
+  const status = err.status || 500;
+  const message = err.message || "Internal Server Error";
+  res.status(status).json({ error: message });
+});
 app.use("/api/security", securityapiRouter);
 app.use("/api/price", priceapiRouter);
 app.use("/api/upload", uploadController);
 app.use("/api/users", userRouter);
-app.use("/api/portfolios", portfolioRouter);
-app.use("/api/holdings", holdingRouter);
+app.use("/api/portfolio", portfolioRouter);
+app.use("/api/holding", holdingRouter);
+app.use("/api/portfoliotransactions", portfoliotransactionsRouter);
+app.use("/api/heatmap", heatMapRouter);
 
 // Error handler
 // app.use((err, req, res, next) => {

@@ -1,6 +1,6 @@
 
-import securityMaster from '../model/SecurityMaster';
-//import { quote, search, quoteSummary } from './yahooFinService';
+import {securityMaster} from '../model/SecurityMaster';
+
 import yahooFinance from 'yahoo-finance2';
 import { quote } from './yahooFinService';
 
@@ -9,39 +9,36 @@ async function securities() {
     return docs;
 }
 
-async function createsecurity(req, res, next) {
-    // const queryOptions = { period1: '2020-01-01', interval: '1mo', events: 'history', includeAdjustedClose: true };
-    const response = await new Promise((resolve, reject) => {
-        yahooFinance.quote('APPL', null, null, function (err, quotes) {
-            if (err) {
-                console.log(err);
-                reject(err);
-            }
-            console.log(quotes);
-            resolve(quotes);
-        });
-    });
-    console.log(response);
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.jsonlist[0].ify(response));
-
-}
 
 
-async function updateSecurityById(id, newData) {
+async function updateSecurity(newData) {
     try {
         // Find the security by id and update it
-        const updatedSecurity = await securityModel.findByIdAndUpdate(id, newData, { new: true });
+        const existingSecurity = await securityMaster.findOne({ symbol: newData.symbol });
 
-        if (!updatedSecurity) {
-            throw new Error('Security not found');
+        if (existingSecurity) {
+            // If the security exists, update it
+            const updatedSecurity = await securityMaster.findByIdAndUpdate(existingSecurity._id, newData, { new: true });
+            
+            if (!updatedSecurity) {
+                throw new Error('Security not found after update attempt');
+            }
+    
+            return updatedSecurity;
+        } else {
+            // If the security doesn't exist, create a new one
+            console.log(newData);
+            const newSecurity = new securityMaster(newData);
+            await newSecurity.save();
+    
+            return newSecurity;
         }
-
-        return updatedSecurity;
     } catch (error) {
         throw error;
     }
 }
+
+
 
 async function getSecurityById(userId) {
     try {
@@ -55,4 +52,4 @@ async function getSecurityById(userId) {
 }
 
 
-export { securities, createsecurity, updateSecurityById, getSecurityById };
+export { securities,  updateSecurity, getSecurityById };

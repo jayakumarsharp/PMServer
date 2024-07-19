@@ -2,24 +2,22 @@ const express = require("express");
 const portfolioRouter = express.Router();
 const portfolio = require("../model/portfolio");
 
-
 /** GET /[id] => { portfolio }
- * 
+ *
  * Returns { id, name, cash, notes, username, holdings }
  *   where where holdings is [{ id, symbol, shares_owned, cost_basis, target_percentage, goal, portfolio_id }, ...]
- * 
+ *
  * Authorization required: user must own portfolio
-*/
+ */
 
 portfolioRouter.get("/:name", async function (req, res, next) {
   try {
-    const existingPortfolio = await portfolio.get(req.params.name)
+    const existingPortfolio = await portfolio.get(req.params.name);
     return res.json({ existingPortfolio });
   } catch (err) {
     return next(err);
   }
 });
-
 
 /**
  * POST /createPortfolio
@@ -47,17 +45,16 @@ portfolioRouter.get("/:name", async function (req, res, next) {
  */
 portfolioRouter.post("/createPortfolio", async (req, res, next) => {
   try {
-    const { name, cash, notes, username } = req.body;
+    const { name, cash, notes } = req.body;
+    const username = req.user.username;
     const newPortfolio = { name, cash, notes, username };
+    console.log(newPortfolio);
     const createdPortfolio = await portfolio.registerPortfolio(newPortfolio);
     res.status(201).json(createdPortfolio);
   } catch (err) {
     next(err);
   }
-  
 });
-
-
 
 /** PATCH /[id] { fld1, fld2, ... } => { portfolio }
  *
@@ -74,13 +71,12 @@ portfolioRouter.patch("/:id", async function (req, res, next) {
   try {
     const id = req.params.id;
     console.log(id);
-    const portfolioUpdated = await portfolio.updatePortfolio(id,req.body);
+    const portfolioUpdated = await portfolio.updatePortfolio(id, req.body);
     return res.json({ portfolioUpdated });
   } catch (err) {
     return next(err);
   }
-})
-
+});
 
 /** DELETE /[id]  =>  { deleted: id }
  *
@@ -95,11 +91,7 @@ portfolioRouter.delete("/:id", async function (req, res, next) {
   } catch (err) {
     return next(err);
   }
-})
-
-
-
- 
+});
 
 // export default portfolioRouter;
 

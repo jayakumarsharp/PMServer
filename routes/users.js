@@ -85,6 +85,25 @@ userRouter.get(
   }
 );
 
+/** POST /[username]/watchlist/[symbol] { state } => { watchlist } 
+ * 
+ * Returns {"watched": symbol}
+ * 
+ * Authorization required: same-user-as:username
+*/
+
+userRouter.post("/:username/watchlist/:symbol", async function (req, res, next) {
+  try {
+    console.log(req);
+    await User.addToWatchlist(req.params);
+    return res.json({ watched: req.params.symbol });
+  } catch (err) {
+    return next(err);
+  }
+})
+
+
+
 /** POST /[username]/watchlist/[symbol] { state } => { watchlist }
  *
  * Returns {"watched": symbol}

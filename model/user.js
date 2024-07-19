@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import { Portfolio } from "./portfolio";
 const bcrypt = require("bcrypt");
 const { NotFoundError, BadRequestError } = require("../expressError");
+import { PortfolioTransactions } from "./portfoliotransactions";
+import { PriceData, updateprice } from "../model/Pricedata";
 
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
@@ -63,7 +65,7 @@ async function authenticate(username, password) {
 }
 
 // Define the get function to fetch user data including watchlist
-async function get(username) {
+async function getbyUsername(username) {
   try {
     const user = await User.findOne({ username })
       .select("username,email,watchlist")
@@ -81,19 +83,9 @@ async function get(username) {
 // Define the getComplete function to fetch user data including watchlist and portfolios
 async function getComplete(username) {
   try {
-    const user = await User.findOne({ username: username })
-      .select("username,email,watchlist")
-      .lean();
-    console.log("get complete " + user);
-    const portfolios = await Portfolio.find({
-      username,
-    });
-
-    console.log("portfolios" + portfolios);
-    // // console.log(portfolios);
-    // // // Add the watchlist and portfolios to the user object
-    user.portfolios = portfolios;
-    return user;
+    const userWithPortfoliosAndHoldings =
+      await getUserWithPortfoliosAndHoldings(username);
+    return userWithPortfoliosAndHoldings;
   } catch (error) {
     throw new Error(
       `Error while fetching complete user data: ${error.message}`
@@ -101,8 +93,96 @@ async function getComplete(username) {
   }
 }
 
-/// getUserPortfolioIds method directly as an instance method (methods) on the userSchema means that this
-// method will be available to each individual instance of the User model.
+async function getUserWithPortfoliosAndHoldings(username) {
+  try {
+    // Retrieve the user
+    const user = await User.findOne({ username })
+      .select("username email watchlist")
+      .lean();
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+    const userid = user._id;
+
+    // Retrieve the portfolios
+    const portfolios = await Portfolio.find({ user_id: userid }).lean();
+    // Retrieve holdings for each portfolio
+    const portfoliosWithHoldings = await Promise.all(
+      portfolios.map(async (portfolio) => {
+        try {
+          const transactions = await PortfolioTransactions.find({
+            portfolio_id: portfolio._id,
+            tran_code: { $in: ["by", "sl"] },
+          }).populate("symbol"); // Populate the 'symbol' field from SecurityMaster
+          console.log("transactions", transactions);
+
+          const holdings = {};
+          console.log("transaction", transactions);
+          transactions.forEach((transaction) => {
+            const securitySymbol = transaction.symbol.symbol;
+            const holdingValue =
+              transaction.shares_owned * transaction.executed_price;
+
+            if (!holdings[securitySymbol]) {
+              holdings[securitySymbol] = {
+                shares_owned: 0,
+                value: 0,
+                secid: transaction.symbol._id,
+              };
+            }
+
+            if (transaction.tran_code === "by") {
+              holdings[securitySymbol].shares_owned += transaction.shares_owned;
+              holdings[securitySymbol].value += holdingValue;
+            } else if (transaction.tran_code === "sl") {
+              holdings[securitySymbol].shares_owned -= transaction.shares_owned;
+              holdings[securitySymbol].value -= holdingValue;
+            }
+          });
+
+          const holdingsArray = await Promise.all(
+            Object.entries(holdings).map(
+              async ([securitySymbol, { shares_owned, value, secid }]) => {
+                // Fetch the regularMarketPrice for the securitySymbol
+                console.log("secyurity fietchi", secid);
+                const priceData = await PriceData.findOne({
+                  securityMaster_id: secid,
+                }).select("regularMarketPrice");
+              
+                return {
+                  symbol: securitySymbol,
+                  quantity: shares_owned,
+                  executed_price: value,
+                  regular_market_price: priceData
+                    ? priceData.regularMarketPrice
+                    : null, // handle the case where priceData might be null
+                };
+              }
+            )
+          );
+          portfolio.holdings = holdingsArray;
+
+          //return { holdings }; // Return the portfolio with its holdings
+        } catch (error) {
+          console.error(
+            `Error fetching holdings for portfolio ${portfolio._id}:`,
+            error
+          );
+          throw error; // Propagate the error to be caught by the Promise.all
+        }
+      })
+    );
+    user.portfolios = portfolios;
+    console.log(user);
+
+    return user;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
 userSchema.methods.getUserPortfolioIds = async function () {
   //Portfolio.find({ username: this.username }): This part of the code performs a query on the Portfolio collection to find documents where the
   //username field matches the username property of the current user instance (this.username).
@@ -181,7 +261,7 @@ async function removeFromWatchlist(Obj) {
 
 export {
   User,
-  get,
+  getbyUsername,
   getComplete,
   addToWatchlist,
   register,

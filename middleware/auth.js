@@ -9,7 +9,7 @@ function authenticateJWT(req, res, next) {
     console.log("authHeader:", authHeader);
     if (authHeader) {
       const token = authHeader.replace(/^[Bb]earer /, "").trim();
-      res.locals.user = jwt.verify(token, SECRET_KEY);
+      req.user= jwt.verify(token, SECRET_KEY);
       console.log("token:", token);
     }
     return next();
