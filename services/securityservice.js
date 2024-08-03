@@ -1,15 +1,10 @@
 
 import {securityMaster} from '../model/SecurityMaster';
 
-import yahooFinance from 'yahoo-finance2';
-import { quote } from './yahooFinService';
-
 async function securities() {
     const docs = await securityMaster.find();
     return docs;
 }
-
-
 
 async function updateSecurity(newData) {
     try {

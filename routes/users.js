@@ -2,12 +2,9 @@ const express = require("express");
 const userRouter = express.Router();
 const { ensureCorrectUser } = require("../middleware/auth");
 require("../expressError");
-const User = require("../model/user");
+const User = require("../services/userService");
 const jwt = require("jsonwebtoken");
 const { createToken } = require("../helpers/tokens");
-
-const jsonschema = require("jsonschema");
-
 
 
 

@@ -1,6 +1,6 @@
 const express = require("express");
 const portfolioRouter = express.Router();
-const portfolio = require("../model/portfolio");
+const portfolio = require("../services/portfolioService");
 
 /** GET /[id] => { portfolio }
  *

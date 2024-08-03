@@ -29,8 +29,9 @@ async function createHolding(Obj) {
     console.log("Obj.symbol" + Obj.symbol);
     const securitydata = await getbySymbol(Obj.symbol);
     console.log(securitydata);
-    const security_id = securitydata._id;
-
+    const symbol = securitydata._id;
+    console.log("symbolsecurity_id", symbol);
+   
     const {
       shares_owned,
       cost_basis,
@@ -41,11 +42,9 @@ async function createHolding(Obj) {
       portfolio_id,
     } = Obj;
 
-    
-
     // Create new Holding
     const newHolding = await PortfolioTransactions.create({
-      security_id,
+      symbol,
       shares_owned,
       cost_basis,
       tran_code,
@@ -54,7 +53,7 @@ async function createHolding(Obj) {
       goal,
       portfolio_id,
     });
-
+    console.log(newHolding);
     return newHolding;
 
     // Return created portfolio

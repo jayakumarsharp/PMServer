@@ -10,10 +10,11 @@ import priceapiRouter from "./routes/priceRouter";
 import uploadController from "./routes/fileUploadRouter";
 import userRouter from "./routes/users";
 import portfolioRouter from "./routes/portfolio";
-import holdingRouter from "./routes/holdings";
+
 import portfoliotransactionsRouter from "./routes/portfoliotransactionsRouter";
 import heatMapRouter from "./routes/heatMapRouter";
-
+import os from "os";
+import path from "path";
 
 
 import { authenticateJWT } from "./middleware/auth";
@@ -62,7 +63,6 @@ app.use("/api/price", priceapiRouter);
 app.use("/api/upload", uploadController);
 app.use("/api/users", userRouter);
 app.use("/api/portfolio", portfolioRouter);
-app.use("/api/holding", holdingRouter);
 app.use("/api/portfoliotransactions", portfoliotransactionsRouter);
 app.use("/api/heatmap", heatMapRouter);
 
@@ -80,4 +80,6 @@ app.use("/api/heatmap", heatMapRouter);
 
 server.listen(3003, () => {
   console.log("Server is running on port 3003");
+  const cookiePath = path.join(os.homedir(), ".yf2-cookies.json");
+  console.log('cookiePath',cookiePath);
 });
