@@ -1,9 +1,6 @@
 const express = require("express");
 const portfoliotransactionsRouter = express.Router();
-import { createHolding } from "../model/portfoliotransactions";
-const securityModel = require("../model/SecurityMaster");
-
-const jsonschema = require("jsonschema");
+import { createHolding } from "../services/PortfolioTransactionService";
 
 /** POST / { holding } => { holding }
  *
@@ -19,17 +16,6 @@ portfoliotransactionsRouter.post(
   async function (req, res, next) {
     try {
       console.log(req.body);
-      debugger;
-
-      // const newTransaction = new portfolioTransactionsSchema({
-      //   symbol: req.body.symbol,
-      //   shares_owned: req.body.shares_owned,
-      //   executed_price: req.body.executed_price,
-      //   // target_percentage: 20,
-      //   // goal: 20000,
-      //   portfolio_id: req.body.portfolio_id, // Example ObjectId of a portfolio document
-      // });
-
       const holding = await createHolding(req.body);
       return res.status(201).json({ holding });
     } catch (err) {
@@ -38,6 +24,5 @@ portfoliotransactionsRouter.post(
   }
 );
 
-// export default portfolioRouter;
 
 module.exports = portfoliotransactionsRouter;
