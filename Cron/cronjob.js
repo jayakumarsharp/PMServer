@@ -69,10 +69,13 @@ async function fetchDataAndUpdate() {
           },
         },
       ]);
+
     const symbolArray = symbolsWithTransactionsAndOldPriceData.map(
       (item) => item.symbol
     );
+
     console.log("symbolArray:", symbolArray);
+
     if (symbolArray.length > 0) {
       var result = await yahooFinance.quote(
         symbolArray,
@@ -186,7 +189,7 @@ async function fetchDataAndUpdate() {
 // Schedule the CRON job
 cron.schedule('*/30 * * * *', () => {
   console.log("Running the CRON job...");
-  //fetchDataAndUpdate();
+  fetchDataAndUpdate();
 });
 
 

@@ -145,6 +145,8 @@ async function getUserWithPortfoliosAndHoldings(username) {
                   shares_owned !== 0 ? totalInvested / shares_owned : 0;
 
                 return {
+                  portfolioid: portfolio._id,
+                  secid: secid,
                   symbol: securitySymbol,
                   quantity: shares_owned,
                   executed_price: value,
@@ -190,8 +192,8 @@ async function getUserPortfolioIds(username) {
 }
 
 
- //Add stock to watchlist: update db, returns undefined.
- 
+//Add stock to watchlist: update db, returns undefined.
+
 async function addToWatchlist(Obj) {
   console.log("Register function called with:", Obj.username, Obj.symbol);
   const user = await User.findOne({ username: Obj.username });

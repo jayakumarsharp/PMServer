@@ -2,10 +2,10 @@ import mongoose from 'mongoose';
 
 const currencySchema = new mongoose.Schema({
     name: String,
-    value: String,
-    Country: String
+    code: String,
+    country: String
 });
 
-const currency = mongoose.model('Security', currencySchema);
+const currencyMaster= mongoose.model('currency', currencySchema);
 
-export default currency;
+export { currencyMaster};

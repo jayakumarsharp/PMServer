@@ -74,7 +74,6 @@ userRouter.get(
   async function (req, res, next) {
     try {
       const user = await User.getComplete(req.params.username);
-      debugger;
       return res.json({ user });
     } catch (err) {
       return next(err);

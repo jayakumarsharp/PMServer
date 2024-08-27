@@ -1,6 +1,6 @@
 const express = require("express");
 const portfoliotransactionsRouter = express.Router();
-import { createHolding } from "../services/PortfolioTransactionService";
+import { createHolding, getHoldingbypfandsecurity } from "../services/PortfolioTransactionService";
 
 /** POST / { holding } => { holding }
  *
@@ -23,6 +23,25 @@ portfoliotransactionsRouter.post(
     }
   }
 );
+
+
+
+portfoliotransactionsRouter.post(
+  "/getHoldingbypfandsecurity",
+  async function (req, res, next) {
+    try {
+      console.log(req.body);
+      const transactions = await getHoldingbypfandsecurity(req.body);
+      return res.status(201).json({ transactions });
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
+
+
+
 
 
 module.exports = portfoliotransactionsRouter;

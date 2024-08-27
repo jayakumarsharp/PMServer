@@ -31,12 +31,27 @@ async function createHolding(Obj) {
       goal,
       portfolio_id,
     });
-   
+
     return newHolding;
+  } catch (error) {
+    console.error("Error creating holding:", error);
+    return { success: false, errors: [error.message] };
+  }
+
+}
+async function getHoldingbypfandsecurity(obj) {
+  try {
+
+    const transactions = PortfolioTransactions.find({
+      portfolio_id: obj.portfolio_id,
+      symbol: obj.symbol_id,
+      tran_code: { $in: ["by", "sl"] },
+    });
+    return res.json({ transactions });
   } catch (error) {
     console.error("Error creating holding:", error);
     return { success: false, errors: [error.message] };
   }
 }
 
-export { createHolding };
+  export { createHolding,getHoldingbypfandsecurity };

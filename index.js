@@ -5,6 +5,7 @@ import socketIo from "socket.io";
 import http from "http";
 
 import { connectDB } from "./DBconnection";
+import currencyapiRouter  from "./routes/CurrencyRouter";
 import securityapiRouter from "./routes/securityRouter";
 import priceapiRouter from "./routes/priceRouter";
 import uploadController from "./routes/fileUploadRouter";
@@ -59,6 +60,7 @@ app.use((err, req, res, next) => {
   res.status(status).json({ error: message });
 });
 app.use("/api/security", securityapiRouter);
+app.use("/api/currency", currencyapiRouter);
 app.use("/api/price", priceapiRouter);
 app.use("/api/upload", uploadController);
 app.use("/api/users", userRouter);
@@ -81,5 +83,5 @@ app.use("/api/heatmap", heatMapRouter);
 server.listen(3003, () => {
   console.log("Server is running on port 3003");
   const cookiePath = path.join(os.homedir(), ".yf2-cookies.json");
-  console.log('cookiePath',cookiePath);
+  console.log('cookiePath', cookiePath);
 });
