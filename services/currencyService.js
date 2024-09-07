@@ -1,5 +1,5 @@
 import { currencyMaster } from '../model/Currency';
-
+import { trancodeMaster } from '../model/trancodes.js';
 // Get all currencies
 async function getCurrencies() {
     return await currencyMaster.find();
@@ -21,4 +21,8 @@ async function deleteCurrency(id) {
     return await currencyMaster.findByIdAndDelete(id);
 }
 
-export { getCurrencies, addCurrency, updateCurrency, deleteCurrency };
+async function getAllTrancodes() {
+    return await trancodeMaster.find();
+}
+
+export { getCurrencies, addCurrency, updateCurrency, deleteCurrency,getAllTrancodes };

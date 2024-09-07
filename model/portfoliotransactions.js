@@ -16,6 +16,9 @@ const portfolioTransactionsschema = new mongoose.Schema({
     type: mongoose.Schema.ObjectId,
     ref: "Portfolio",
   },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date },
+  createdBy: { type: String }
 });
 
 const PortfolioTransactions = mongoose.model(
@@ -31,7 +34,7 @@ async function createHolding(Obj) {
     console.log(securitydata);
     const symbol = securitydata._id;
     console.log("symbolsecurity_id", symbol);
-   
+
     const {
       shares_owned,
       cost_basis,

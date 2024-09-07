@@ -43,15 +43,15 @@ async function getHoldingbypfandsecurity(obj) {
   try {
 
     const transactions = PortfolioTransactions.find({
-      portfolio_id: obj.portfolio_id,
-      symbol: obj.symbol_id,
+      portfolio_id: obj.portfolioid,
+      symbol: obj.secid,
       tran_code: { $in: ["by", "sl"] },
     });
-    return res.json({ transactions });
+    return transactions;
   } catch (error) {
     console.error("Error creating holding:", error);
     return { success: false, errors: [error.message] };
   }
 }
 
-  export { createHolding,getHoldingbypfandsecurity };
+export { createHolding, getHoldingbypfandsecurity };

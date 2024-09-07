@@ -1,5 +1,5 @@
 import express from 'express';
-import { getCurrencies, addCurrency, updateCurrency, deleteCurrency } from "../services/currencyService";
+import { getCurrencies, addCurrency, updateCurrency, deleteCurrency,getAllTrancodes } from "../services/currencyService";
 
 const currencyapiRouter = express.Router();
 
@@ -33,5 +33,10 @@ currencyapiRouter.delete('/currencies/:id', async (req, res) => {
     res.json({ success: true });
 });
 
+currencyapiRouter.get('/getAllTrancodes', async (req, res) => {
+    const trancodes = await getAllTrancodes();
+    console.log(trancodes);
+    res.json(trancodes);   
+});
 
 export default currencyapiRouter;
