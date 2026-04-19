@@ -1,5 +1,37 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
 
-node_modules
+# Lock files (choose one to commit — yarn.lock OR package-lock.json, not both)
 package-lock.json
-yarn.lock
-node_modules/.cache/@babel/register/.babel.7.24.5.development.json
+
+# Environment variables — NEVER commit these
+.env
+.env.local
+.env.*.local
+
+# Uploads directory (user files)
+uploads/*
+!uploads/.gitkeep
+
+# Build output
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
+
+# Babel cache
+node_modules/.cache/

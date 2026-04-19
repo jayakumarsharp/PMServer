@@ -1,10 +1,12 @@
 const express = require("express");
 const portfoliotransactionsRouter = express.Router();
-import { createHolding, getHoldingbypfandsecurity } from "../services/PortfolioTransactionService";
+const { createHolding, getHoldingbypfandsecurity } = require("../services/PortfolioTransactionService");
+const { validate, createTransactionSchema } = require("../validations/schemas");
 
 
 portfoliotransactionsRouter.post(
   "/createTransaction",
+  validate(createTransactionSchema),
   async function (req, res, next) {
     try {
       console.log(req.body);

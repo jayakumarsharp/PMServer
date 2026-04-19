@@ -3,7 +3,7 @@ import yahooFinance from "yahoo-finance2";
 import {
   securities,
   updateSecurity,
-  getSecurityById,
+  deleteSecurityById,
 } from "../services/securityservice";
 
 const securityapiRouter = express.Router();
@@ -60,6 +60,7 @@ securityapiRouter.post("/search", async (req, res) => {
 
 securityapiRouter.post("/historical", async (req, res) => {
   try {
+    console.log(req);
     const query = req.body.symbol;
     console.log(query);
     const queryOptions = {
@@ -68,7 +69,8 @@ securityapiRouter.post("/historical", async (req, res) => {
       events: "history",
       includeAdjustedClose: true,
     };
-    const result1 = await yahooFinance.historical(query, queryOptions);
+    //historical changed to chart
+    const result1 = await yahooFinance.chart(query, queryOptions);
     console.log("data arrived");
 
     const stockPrices = result1;
@@ -197,14 +199,12 @@ securityapiRouter.put("/security/:id", async (req, res) => {
   }
 });
 
-securityapiRouter.delete("/security/:id", async (req, res) => {
+securityapiRouter.delete("/security/:id", async (req, res, next) => {
   try {
-    const { id } = req.params;
-    await getSecurityById(id);
+    await deleteSecurityById(req.params.id);
     res.json({ msg: "security deleted successfully" });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server Error");
+    next(err);
   }
 });
 

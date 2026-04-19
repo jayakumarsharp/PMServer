@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(yarn add:*)",
+      "Read(//d/Study/DevChapter/**)",
+      "Bash(npx create-next-app@latest client --ts --tailwind --eslint --app --no-src-dir --import-alias \"@/*\" --yes)",
+      "Bash(npm install:*)"
+    ]
+  }
+}

@@ -48,7 +48,12 @@ async function getpricelistbySymbol(obj) {
           .sort({ date: 1 })
           .lean();
 
-        return await processPrices(prices, obj.fromDate, obj.toDate, security_id);
+        return await processPrices(
+          prices,
+          obj.fromDate,
+          obj.toDate,
+          security_id
+        );
       } else {
         console.log("Price exists but current month missing");
         const queryOptions = {
@@ -56,7 +61,8 @@ async function getpricelistbySymbol(obj) {
             .toISOString()
             .split("T")[0],
         };
-        const result1 = await yahooFinance.historical(obj.symbol, queryOptions);
+        const result1 = await yahooFinance.chart(obj.symbol, queryOptions);
+        console.log(result1);
         await bulkInsertOrUpdate(security_id, result1);
         const startDate = new Date(2000, 0, 1); // Always fetch data from the year 2000
         let prices = await pricehistories
@@ -66,7 +72,12 @@ async function getpricelistbySymbol(obj) {
           })
           .sort({ date: 1 })
           .lean();
-        return await processPrices(prices, obj.fromDate, obj.toDate, security_id);
+        return await processPrices(
+          prices,
+          obj.fromDate,
+          obj.toDate,
+          security_id
+        );
       }
     } else {
       // If prices are empty, fetch data from external provider
@@ -76,10 +87,10 @@ async function getpricelistbySymbol(obj) {
       const queryOptions = { period1: startDate.toISOString().split("T")[0] };
 
       console.log(queryOptions);
-      const result1 = await yahooFinance.historical(obj.symbol, queryOptions);
+      const result1 = await yahooFinance.chart(obj.symbol, queryOptions);
 
       await bulkInsertOrUpdate(security_id, result1);
-
+      console.log(result1);
       const prices = await pricehistories
         .find({
           securityMaster_id: security_id,
@@ -183,7 +194,7 @@ async function processPrices(prices, fromDate, toDate, security_id) {
   });
 
   // Filter prices within the specified date range
-  const filteredPrices = result.filter(yearData => {
+  const filteredPrices = result.filter((yearData) => {
     const year = yearData.year;
     const startDate = new Date(fromDate);
     const endDate = new Date(toDate);
@@ -211,14 +222,16 @@ async function getCagrResults(result, latestPrice, security_id) {
     month: currentMonth,
   }).lean();
 
-  const daysSinceLastUpdate = existingCarg ? (new Date() - new Date(existingCarg.updatedAt)) / (1000 * 60 * 60 * 24) : null;
+  const daysSinceLastUpdate = existingCarg
+    ? (new Date() - new Date(existingCarg.updatedAt)) / (1000 * 60 * 60 * 24)
+    : null;
 
   if (existingCarg && daysSinceLastUpdate <= 45) {
     return {
-      "CAGR_1yr": existingCarg.cagr1yr !== null ? existingCarg.cagr1yr : "NA",
-      "CAGR_3yr": existingCarg.cagr3yr !== null ? existingCarg.cagr3yr : "NA",
-      "CAGR_5yr": existingCarg.cagr5yr !== null ? existingCarg.cagr5yr : "NA",
-      "CAGR_10yr": existingCarg.cagr10yr !== null ? existingCarg.cagr10yr : "NA"
+      CAGR_1yr: existingCarg.cagr1yr !== null ? existingCarg.cagr1yr : "NA",
+      CAGR_3yr: existingCarg.cagr3yr !== null ? existingCarg.cagr3yr : "NA",
+      CAGR_5yr: existingCarg.cagr5yr !== null ? existingCarg.cagr5yr : "NA",
+      CAGR_10yr: existingCarg.cagr10yr !== null ? existingCarg.cagr10yr : "NA",
     };
   }
 
@@ -246,10 +259,14 @@ async function getCagrResults(result, latestPrice, security_id) {
     },
     {
       $set: {
-        cagr1yr: cagrResults["CAGR_1yr"] !== "NA" ? cagrResults["CAGR_1yr"] : null,
-        cagr3yr: cagrResults["CAGR_3yr"] !== "NA" ? cagrResults["CAGR_3yr"] : null,
-        cagr5yr: cagrResults["CAGR_5yr"] !== "NA" ? cagrResults["CAGR_5yr"] : null,
-        cagr10yr: cagrResults["CAGR_10yr"] !== "NA" ? cagrResults["CAGR_10yr"] : null,
+        cagr1yr:
+          cagrResults["CAGR_1yr"] !== "NA" ? cagrResults["CAGR_1yr"] : null,
+        cagr3yr:
+          cagrResults["CAGR_3yr"] !== "NA" ? cagrResults["CAGR_3yr"] : null,
+        cagr5yr:
+          cagrResults["CAGR_5yr"] !== "NA" ? cagrResults["CAGR_5yr"] : null,
+        cagr10yr:
+          cagrResults["CAGR_10yr"] !== "NA" ? cagrResults["CAGR_10yr"] : null,
       },
     },
     { upsert: true, new: true }
@@ -261,7 +278,7 @@ async function getCagrResults(result, latestPrice, security_id) {
 // Function to calculate 1-year CAGR
 function calculate1YrCAGR(prices, latestPrice) {
   const currentYear = new Date().getFullYear();
-  const yearData = prices.find(yearData => yearData.year === currentYear - 1);
+  const yearData = prices.find((yearData) => yearData.year === currentYear - 1);
   if (yearData && yearData[months[new Date().getMonth()]] !== "NA") {
     const startValue = parseFloat(yearData[months[new Date().getMonth()]]);
     if (!isNaN(startValue)) {
@@ -274,7 +291,7 @@ function calculate1YrCAGR(prices, latestPrice) {
 // Function to calculate 3-year CAGR
 function calculate3YrCAGR(prices, latestPrice) {
   const currentYear = new Date().getFullYear();
-  const yearData = prices.find(yearData => yearData.year === currentYear - 3);
+  const yearData = prices.find((yearData) => yearData.year === currentYear - 3);
   if (yearData && yearData[months[new Date().getMonth()]] !== "NA") {
     const startValue = parseFloat(yearData[months[new Date().getMonth()]]);
     if (!isNaN(startValue)) {
@@ -287,7 +304,7 @@ function calculate3YrCAGR(prices, latestPrice) {
 // Function to calculate 5-year CAGR
 function calculate5YrCAGR(prices, latestPrice) {
   const currentYear = new Date().getFullYear();
-  const yearData = prices.find(yearData => yearData.year === currentYear - 5);
+  const yearData = prices.find((yearData) => yearData.year === currentYear - 5);
   if (yearData && yearData[months[new Date().getMonth()]] !== "NA") {
     const startValue = parseFloat(yearData[months[new Date().getMonth()]]);
     if (!isNaN(startValue)) {
@@ -300,7 +317,9 @@ function calculate5YrCAGR(prices, latestPrice) {
 // Function to calculate 10-year CAGR
 function calculate10YrCAGR(prices, latestPrice) {
   const currentYear = new Date().getFullYear();
-  const yearData = prices.find(yearData => yearData.year === currentYear - 10);
+  const yearData = prices.find(
+    (yearData) => yearData.year === currentYear - 10
+  );
   if (yearData && yearData[months[new Date().getMonth()]] !== "NA") {
     const startValue = parseFloat(yearData[months[new Date().getMonth()]]);
     if (!isNaN(startValue)) {

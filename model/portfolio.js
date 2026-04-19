@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 
 const portfolioSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  cash: { type: Number, required: true },
   notes: String,
   user_id: {
     type: mongoose.Schema.ObjectId,

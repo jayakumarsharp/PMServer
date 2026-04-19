@@ -5,14 +5,8 @@ const currencyapiRouter = express.Router();
 
 // Get all currencies
 currencyapiRouter.get('/currencies', async (req, res) => {
-    
-    console.log("called currency api");
     const currencies = await getCurrencies();
-    console.log(currencies);
-
     res.json(currencies);
-
-    
 });
 
 // Add a new currency

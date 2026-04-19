@@ -35,16 +35,15 @@ async function updateSecurity(newData) {
 
 
 
-async function getSecurityById(userId) {
+async function deleteSecurityById(id) {
     try {
-        const { id } = req.params;
-        return await securityModel.findByIdAndDelete(id);
-
+        const deleted = await securityMaster.findByIdAndDelete(id);
+        if (!deleted) throw new Error(`Security not found: ${id}`);
+        return deleted;
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        throw err;
     }
 }
 
 
-export { securities,  updateSecurity, getSecurityById };
+export { securities, updateSecurity, deleteSecurityById };

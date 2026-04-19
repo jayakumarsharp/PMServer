@@ -3,8 +3,8 @@ const userRouter = express.Router();
 const { ensureCorrectUser } = require("../middleware/auth");
 require("../expressError");
 const User = require("../services/userService");
-const jwt = require("jsonwebtoken");
 const { createToken } = require("../helpers/tokens");
+const { validate, registerSchema, loginSchema, watchlistSchema } = require("../validations/schemas");
 
 
 
@@ -26,7 +26,7 @@ const { createToken } = require("../helpers/tokens");
  *    "email": "example@example.com"
  * }
  */
-userRouter.post("/register", async (req, res, next) => {
+userRouter.post("/register", validate(registerSchema), async (req, res, next) => {
   try {
     const { username, password, email } = req.body;
     console.log(req.body);
@@ -148,7 +148,7 @@ userRouter.delete(
 );
 
 
-userRouter.post('/token', async (req, res, next) => {
+userRouter.post('/token', validate(loginSchema), async (req, res, next) => {
   try {
     // const { username } = req.body;
     // const token = jwt.sign({ username }, SECRET_KEY);

@@ -47,6 +47,22 @@ async function authenticate(username, password) {
   throw new UnauthorizedError("Invalid username/password");
 }
 
+
+// Define the get function to fetch user data including watchlist
+async function getbyUserId(user_id) {
+  try {
+    console.log(user_id);
+    const user = await User.findOne({ _id:user_id });
+    if (!user) {
+      throw new NotFoundError(`No user: ${user_id}`);
+    }
+    return user;
+  } catch (error) {
+    // Handle any errors that occur during the process
+    throw new Error(`Error while fetching user: ${error.message}`);
+  }
+}
+
 // Define the get function to fetch user data including watchlist
 async function getbyUsername(username) {
   try {
@@ -257,4 +273,5 @@ export {
   removeFromWatchlist,
   authenticate,
   getUserPortfolioIds,
+  getbyUserId
 };

@@ -1,3 +1,4 @@
+import yahooFinance from "yahoo-finance2";
 import { getbySymbol } from "../model/SecurityMaster";
 import { pricehistories, bulkInsertOrUpdate } from "../model/pricehistories";
 
@@ -28,7 +29,7 @@ async function getATHpricelistbySymbol(obj) {
             .toISOString()
             .split("T")[0], // Add one day to latestDate
         };
-        const result1 = await yahooFinance.historical(symbol, queryOptions);
+        const result1 = await yahooFinance.historical(securitydata.symbol, queryOptions);
         await bulkInsertOrUpdate(security_id, result1);
       }
     } else {
@@ -37,7 +38,7 @@ async function getATHpricelistbySymbol(obj) {
       startDate.setFullYear(startDate.getFullYear() - 20);
 
       const queryOptions = { period1: startDate.toISOString().split("T")[0] };
-      const result1 = await yahooFinance.historical(symbol, queryOptions);
+      const result1 = await yahooFinance.historical(securitydata.symbol, queryOptions);
 
       await bulkInsertOrUpdate(security_id, result1);
     }
@@ -54,7 +55,7 @@ async function getATHpricelistbySymbol(obj) {
 
     if (prices.length === 0) {
       const queryOptions = { period1: startDate.toISOString().split("T")[0] };
-      const result1 = await yahooFinance.historical(symbol, queryOptions);
+      const result1 = await yahooFinance.historical(securitydata.symbol, queryOptions);
       await bulkInsertOrUpdate(security_id, result1);
       prices = await pricehistories
         .find({
