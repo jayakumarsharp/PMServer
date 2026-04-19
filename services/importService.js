@@ -1,5 +1,7 @@
 import fs from "fs";
+import path from "path";
 import csvParser from "csv-parser";
+import xlsx from "xlsx";
 import ImportMapping from "../model/ImportMapping";
 import ImportHistory from "../model/ImportHistory";
 import { securityMaster } from "../model/SecurityMaster";
@@ -100,6 +102,26 @@ function parseCsvFile(filePath) {
   });
 }
 
+// ── Parse an Excel file (.xlsx / .xls) and return raw rows ───────────────────
+function parseExcelFile(filePath) {
+  const workbook = xlsx.readFile(filePath);
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  // Convert to array-of-objects (first row = headers)
+  const rows = xlsx.utils.sheet_to_json(sheet, { defval: "" });
+  const headers = rows.length > 0 ? Object.keys(rows[0]) : [];
+  return { headers, rows };
+}
+
+// ── Unified file parser — dispatches by extension ────────────────────────────
+function parseFile(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext === ".xlsx" || ext === ".xls") {
+    return Promise.resolve(parseExcelFile(filePath));
+  }
+  return parseCsvFile(filePath);
+}
+
 // ── Map a raw CSV row to a PMS transaction using a column map ────────────────
 function mapRow(rawRow, columnMap, tranCodeMap, rowIndex) {
   const get = (field) => {
@@ -167,7 +189,7 @@ export async function deleteMapping(mappingId, userId) {
 }
 
 export async function previewImport({ filePath, filename, columnMap, tranCodeMap, userId, portfolioId }) {
-  const { headers, rows } = await parseCsvFile(filePath);
+  const { headers, rows } = await parseFile(filePath);
 
   // If no columnMap supplied, auto-suggest
   const effectiveColumnMap = columnMap || suggestMapping(headers);
@@ -214,7 +236,7 @@ export async function previewImport({ filePath, filename, columnMap, tranCodeMap
 }
 
 export async function confirmImport({ filePath, filename, columnMap, tranCodeMap, portfolioId, userId, mappingId }) {
-  const { rows } = await parseCsvFile(filePath);
+  const { rows } = await parseFile(filePath);
   const effectiveTranCodeMap = tranCodeMap || { buy: ["B", "BUY", "buy", "Purchase"], sell: ["S", "SELL", "sell", "Sale"] };
 
   const mapped = rows.map((row, i) => mapRow(row, columnMap, effectiveTranCodeMap, i + 1));

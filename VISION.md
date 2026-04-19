@@ -1,647 +1,595 @@
-# PMServer — Vision, Strategy & Implementation Tranches
+# PMServer — Complete Vision, Strategy & Implementation Plan
 
-> **Document Type:** Product & Engineering Strategy
+> **Document Type:** Product & Engineering Strategy (Living Document)
 > **Audience:** Founder / Solo Developer
-> **Date:** April 2026
+> **Last Updated:** April 2026
 
 ---
 
 ## Table of Contents
 
-1. [Cloud Hosting — What It Costs & Why It's Worth It](#1-cloud-hosting--what-it-costs--why-its-worth-it)
-2. [Yahoo Finance Free API — Risks & Alternatives](#2-yahoo-finance-free-api--risks--alternatives)
-3. [Best Technology Stack for 2026](#3-best-technology-stack-for-2026)
-4. [Database Decision — RDBMS vs Document DB](#4-database-decision--rdbms-vs-document-db)
-5. [Product Vision — What You're Building](#5-product-vision--what-youre-building)
-6. [Open Platform + Donation Model](#6-open-platform--donation-model)
-7. [Implementation Tranches](#7-implementation-tranches)
+1. [What You Are Building](#1-what-you-are-building)
+2. [Full Feature Requirements](#2-full-feature-requirements)
+3. [Cloud Hosting — Costs & Benefits](#3-cloud-hosting--costs--benefits)
+4. [Yahoo Finance Free API — Strategy](#4-yahoo-finance-free-api--strategy)
+5. [Best Technology Stack (2026)](#5-best-technology-stack-2026)
+6. [Database Decision](#6-database-decision)
+7. [Claude AI Integration — Portfolio Intelligence](#7-claude-ai-integration--portfolio-intelligence)
+8. [Excel / CSV Holdings Import](#8-excel--csv-holdings-import)
+9. [Open Platform + Donation Model](#9-open-platform--donation-model)
+10. [Deployment Guide](#10-deployment-guide)
+11. [Implementation Tranches (All)](#11-implementation-tranches-all)
+12. [Prompting Guide for Claude Code](#12-prompting-guide-for-claude-code)
 
 ---
 
-## 1. Cloud Hosting — What It Costs & Why It's Worth It
+## 1. What You Are Building
 
-### Realistic Cost Tiers
+**PMServer** is a fully open-source, self-hostable Portfolio Management System for retail investors — primarily targeting Indian market (NSE/BSE) but supporting global stocks.
 
-#### Tier 0 — Completely Free (Good for development & early beta)
+### Your Core Requirements (As Stated)
 
-| Service | What You Get | Cost |
-|---------|-------------|------|
-| [Railway.app](https://railway.app) | Node.js server, auto-deploy from GitHub | $0 (500 hours/month) |
-| [MongoDB Atlas M0](https://www.mongodb.com/atlas) | 512MB shared MongoDB cluster | $0 forever |
-| [Vercel](https://vercel.com) | Frontend hosting (React/Next.js) | $0 |
-| [Render.com](https://render.com) | Alternative to Railway (spins down if idle) | $0 |
-| **Total** | | **$0/month** |
-
-**Catch:** Free servers sleep after 15 min of inactivity. First request is slow (cold start ~5-10 seconds).
-
----
-
-#### Tier 1 — Minimal Production (~$5-10/month)
-
-| Service | What You Get | Cost |
-|---------|-------------|------|
-| Railway Starter | Always-on Node.js, 512MB RAM, 1GB disk | $5/month |
-| MongoDB Atlas M0 | 512MB free (enough for hundreds of users) | $0 |
-| Vercel | Frontend (generous free tier) | $0 |
-| **Total** | | **~$5/month** |
-
-**This is your sweet spot.** Handles 100-500 active users comfortably.
+| Requirement | Status | Details |
+|-------------|--------|---------|
+| Portfolio tracking (holdings, P&L) | ✅ Built | Multi-portfolio, buy/sell transactions |
+| Excel / spreadsheet import | ✅ Built | .xlsx, .xls, .csv with smart column mapping |
+| CSV import with broker mapping | ✅ Built | Zerodha, Upstox, Groww, Angel templates |
+| Voice position entry | ✅ Built | Browser mic → NLP parser → confirm → save |
+| OMS broker API connections | ✅ Built | Upstox, Fyers OAuth adapters |
+| Claude AI portfolio analysis | ✅ Built | Personal API key, on-demand analysis |
+| CAGR heat maps | ✅ Built | Monthly/yearly price history visualization |
+| ATH (All-Time High) tracking | ✅ Built | Breakout frequency analysis |
+| Multi-currency accounts | ✅ Built | INR, USD, EUR, GBP, AUD, etc. |
+| Watchlist | ✅ Built | Per-user symbol watchlist |
+| Free hosting deployment | 📋 Planned | Railway + MongoDB Atlas free tier |
+| Open source + donation | ✅ Built | MIT License, donation links |
 
 ---
 
-#### Tier 2 — Growth (~$20-35/month)
+## 2. Full Feature Requirements
 
-| Service | What You Get | Cost |
-|---------|-------------|------|
-| Railway Pro or Fly.io | 1GB RAM, auto-scaling | $10-20/month |
-| MongoDB Atlas M2 | 2GB dedicated, better performance | $9/month |
-| Upstash Redis | Caching, rate limiting (free tier: 10K req/day) | $0-5/month |
-| **Total** | | **~$20-35/month** |
-
----
-
-### Benefits of Cloud Hosting vs Running Locally
-
-| Benefit | Details |
-|---------|---------|
-| **Always Available** | Users access it 24/7. Your laptop being off doesn't matter. |
-| **Auto SSL/HTTPS** | Railway and Render give you free HTTPS certificates automatically. |
-| **Deploy in 60 seconds** | Push to GitHub → auto-deploys. No FTP, no manual restarts. |
-| **Real URL for users** | `https://pmserver.up.railway.app` — shareable with anyone. |
-| **Zero server maintenance** | No OS patches, no hardware failures, no power outages. |
-| **Scale when needed** | Add more RAM/CPU with a slider — no migration needed. |
-| **Logs and monitoring** | Built-in dashboards to see errors, traffic, memory usage. |
-| **Database backups** | MongoDB Atlas auto-backs up daily. Free tier included. |
-
-### Recommended Starting Path
+### 2.1 Holdings Management
 
 ```
-1. Deploy to Railway.app free tier now (development)
-2. When first real users join → upgrade to Railway Starter ($5/month)
-3. When 500+ active users → evaluate growth tier
+Primary input method: Excel/CSV import (manual, from your spreadsheet)
+
+Excel import flow:
+  1. User uploads .xlsx or .csv file
+  2. System reads headers → auto-suggests column mapping
+  3. User confirms or adjusts the mapping
+  4. Save mapping as template (e.g. "My Excel Template")
+  5. Preview rows — see what will be imported
+  6. Confirm → positions created in selected portfolio
+
+Supported file formats:
+  .xlsx — Microsoft Excel (most common)
+  .xls  — Legacy Excel
+  .csv  — Comma-separated (any broker export)
+  .ods  — LibreOffice Calc (future)
+
+Manual entry (fallback):
+  → Add position form (symbol search + qty + price + date)
+  → Voice command ("buy 50 Reliance at 2850")
 ```
 
-**Honest estimate:** If you get 50 regular users, $5/month pays for itself if even one user donates $5.
-
----
-
-## 2. Yahoo Finance Free API — Risks & Alternatives
-
-### Current Reality
-
-`yahoo-finance2` is an **unofficial, reverse-engineered** library. It works by scraping Yahoo Finance's internal APIs. This means:
-
-| Risk | Likelihood | Impact |
-|------|-----------|--------|
-| Yahoo blocks the API without notice | Medium | All price data stops |
-| Rate limiting (too many requests) | High (already happens) | Partial data loss |
-| Data format changes break the library | Medium | Need library update |
-| Terms of Service violation | Technically yes | Unlikely enforcement for personal use |
-
-### The Good News
-
-For a PMS serving retail investors who aren't trading at HFT scale, Yahoo Finance is perfectly usable IF you:
-
-1. **Cache aggressively** — store prices in MongoDB, only refresh every 30-60 minutes (already doing this with your cron job)
-2. **Never fetch per-user-request** — always serve from cache
-3. **Batch requests** — fetch all portfolio securities in one cron run, not on-demand
-
-### Free API Alternatives (Ranked for Your Use Case)
-
-| Provider | Free Tier | Best For | Indian Stocks |
-|----------|-----------|----------|:---:|
-| **Yahoo Finance (current)** | Unlimited (unofficial) | Everything | Yes (NSE/BSE) |
-| **[Twelve Data](https://twelvedata.com)** | 800 requests/day | Real-time + history | Limited |
-| **[Alpha Vantage](https://www.alphavantage.co)** | 25 req/day (too low) | US stocks only | No |
-| **[NSE India Official](https://nseindia.com)** | Free (public data) | Indian stocks | Yes (best) |
-| **[Polygon.io](https://polygon.io)** | Free (15min delay) | US only | No |
-| **[Open Exchange Rates](https://openexchangerates.org)** | 1000 req/month free | Currency rates only | — |
-
-### Recommended Hybrid Strategy (Zero Cost)
+### 2.2 Claude AI Portfolio Intelligence
 
 ```
-Indian Stocks (NSE/BSE):
-  → Use nse-data package (already installed) as primary
-  → Fall back to Yahoo Finance
+User connects their personal Claude API key (stored securely, per-user)
+API key is NEVER shared — each user uses their own Anthropic account
 
-US/Global Stocks:
-  → Yahoo Finance as primary (cached)
-  → Twelve Data as fallback (800 free req/day)
+Analysis types available on demand:
+  📊 Portfolio Health Score     — diversification, concentration risk, sector balance
+  📈 Performance Analysis       — best/worst performers, CAGR comparison
+  ⚖️  Rebalancing Suggestions   — which to buy more / reduce
+  🔍 Stock Deep Dive            — fundamental analysis of a single holding
+  ⚠️  Risk Assessment           — volatility, beta, drawdown analysis
+  💰 Tax Optimization           — STCG vs LTCG, which lots to sell
+  📅 SIP Recommendation         — which stocks to add to monthly SIP
+  💬 Free Chat                  — "Why is my portfolio underperforming Nifty?"
 
-Currency Rates:
-  → Open Exchange Rates free tier
-  → Or European Central Bank free XML feed (no rate limit)
-
-Price History:
-  → Fetch once, store in MongoDB PriceHistories collection
-  → Never re-fetch what you already have
-```
-
----
-
-## 3. Best Technology Stack for 2026
-
-### Current Stack Assessment
-
-| Current | Status | Recommendation |
-|---------|--------|----------------|
-| Node.js + Express | Still solid | Keep — but consider Fastify for 2x speed |
-| Babel transpilation | Legacy approach | Migrate to native Node.js ESM (`"type": "module"`) |
-| MongoDB + Mongoose | Good for PMS | Keep for now (see DB section) |
-| JWT auth (disabled) | Needs fix | Re-enable + add refresh tokens |
-| moment.js | Deprecated | Replace with `date-fns` (tree-shakeable) |
-| inversify (unused) | Dead weight | Remove |
-| yahoo-finance2 | Unofficial but works | Keep + add cache layer |
-
-### Recommended Modern Stack
-
-```
-Backend (Keep & Improve):
-  Runtime:      Node.js 20+ LTS (native ESM, no Babel needed)
-  Framework:    Express.js 4 → consider Fastify v4 (3x faster, built-in schema validation)
-  Validation:   Zod (TypeScript-friendly) or Joi (you already know it)
-  Auth:         JWT + refresh tokens, or Clerk.dev (free tier, handles everything)
-  Logging:      Pino (fastest JSON logger for Node.js, Fastify's default)
-  DB:           MongoDB Atlas (keep) or PostgreSQL via Supabase (see DB section)
-  Cache:        Upstash Redis (serverless, free tier, perfect for Railway)
-  Queue:        Bull (for background jobs, replaces raw cron) or BullMQ
-
-Frontend (New):
-  Framework:    Next.js 15 (React, SSR, file-based routing, free on Vercel)
-  UI Library:   shadcn/ui (copy-paste components, Tailwind-based, free)
-  Charts:       Recharts or TradingView Lightweight Charts (free)
-  State:        Zustand (simple) or TanStack Query (server state)
-
-Voice Input:
-  Browser API:  Web Speech API (built into Chrome/Edge — free, no backend needed)
-  Alternative:  OpenAI Whisper API ($0.006/minute — extremely cheap)
-
-Deployment:
-  Backend:      Railway.app
-  Frontend:     Vercel
-  DB:           MongoDB Atlas or Supabase
-  Cache:        Upstash Redis
-
-CI/CD:
-  GitHub Actions (free for public repos)
-```
-
-### Why These Choices
-
-- **Next.js on Vercel**: Zero config, free SSL, global CDN, deploy in 30 seconds
-- **shadcn/ui**: Beautiful financial UI components, no subscription, you own the code
-- **Pino logging**: Structured JSON logs that Railway/Render can parse and display
-- **Upstash Redis**: Serverless Redis — pay per request, not per hour. $0 for small scale.
-- **Web Speech API**: Browser-native voice recognition, no API cost for voice position entry
-
----
-
-## 4. Database Decision — RDBMS vs Document DB
-
-### The Honest Answer for a PMS
-
-**Short term (now):** Keep MongoDB — migration cost too high for the benefit.
-**Long term (if rebuilding):** PostgreSQL is the better choice for financial data.
-
-### Why SQL (PostgreSQL) Is Technically Better for PMS
-
-Financial data is **relational by nature**:
-
-```
-User → Portfolio → Transaction → Security → Price
-         ↓
-       Account → ExchangeRate
-```
-
-| Advantage | Why It Matters for PMS |
-|-----------|----------------------|
-| **ACID transactions** | A buy transaction must atomically update shares_owned + cost_basis. MongoDB supports this but it's complex. |
-| **Complex reporting queries** | Portfolio P&L across holdings with currency conversion is a 3-table JOIN in SQL. In MongoDB it's 3 separate queries + manual join in JS. |
-| **XIRR / financial calculations** | Easier with window functions in SQL (e.g., running balance, rolling averages) |
-| **Data integrity** | Foreign key constraints prevent orphaned transactions when a portfolio is deleted. Mongoose has no FK constraints. |
-| **Full-text search** | PostgreSQL has built-in full-text search (no separate Elasticsearch) |
-| **Audit trail** | Row-level versioning with `updated_at` triggers is built in |
-
-### Why MongoDB Is Fine for Now
-
-| Advantage | Context |
-|-----------|---------|
-| **Flexible schema** | Price data from Yahoo Finance has 60+ irregular fields — great fit for document model |
-| **Time-series data** | PriceHistories is a natural document collection |
-| **No migration cost** | You have working code. Rewriting everything is months of work. |
-| **Free Atlas tier** | 512MB is plenty for a PMS with hundreds of users |
-| **Already working** | With proper indexes, MongoDB handles PMS workloads fine |
-
-### Recommended Hybrid Approach (Best of Both Worlds)
-
-```
-PostgreSQL (via Supabase — free tier):
-  → Users, Portfolios, Transactions, Accounts
-  → ExchangeRates, Currencies, SecurityMaster
-  → All relational, transactional, reporting data
-
-MongoDB (Atlas free tier):
-  → PriceData (60+ fields, schema varies by security type)
-  → PriceHistories (time-series, high write volume)
-  → Carg (calculated metrics cache)
-  → ATHTracker
-
-Cache (Upstash Redis):
-  → Current prices (TTL: 5 minutes)
-  → Security search results (TTL: 1 hour)
-  → User session data
-```
-
-**But for now: Keep MongoDB for everything.** Add PostgreSQL/Supabase when you rebuild the frontend.
-
----
-
-## 5. Product Vision — What You're Building
-
-You described a clear product. Here it is structured as a feature map:
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    PMServer Platform                            │
-│                   "Open PMS for Everyone"                       │
-├─────────────────────┬───────────────────────────────────────────┤
-│   CORE (Built)      │   NEXT (Build)                           │
-│                     │                                           │
-│ ✓ Portfolio tracking│ ○ OMS Provider Connections               │
-│ ✓ Holdings & P&L    │ ○ Voice Position Entry                   │
-│ ✓ CAGR heat maps    │ ○ Broker CSV Import + Mapping            │
-│ ✓ Price history     │ ○ Portfolio rebalancing                  │
-│ ✓ ATH tracking      │ ○ Alerts & notifications                 │
-│ ✓ Multi-currency    │ ○ Dividend tracking                      │
-│ ✓ Watchlist         │ ○ Tax lot accounting                     │
-│ ✓ User accounts     │ ○ Net worth dashboard                    │
-└─────────────────────┴───────────────────────────────────────────┘
-```
-
-### Feature 1: OMS Provider Connections
-
-Connect directly to broker APIs so holdings sync automatically.
-
-```
-Supported Indian Brokers (have public APIs):
-  - Zerodha (Kite Connect API — ₹2000/month for developers)
-  - Upstox (free API)
-  - Angel Broking (free API)
-  - 5paisa (free API)
-  - Fyers (free API)
-
-Strategy:
-  - Build an OMS adapter interface
-  - Each broker implements the same interface:
-    getPositions() → PortfolioTransaction[]
-    getOrders() → Order[]
-    getTrades() → Trade[]
-  - User links their broker account via OAuth / API key
-  - Sync runs nightly or on-demand
-```
-
-### Feature 2: Voice Recording for Position Entry
-
-```
 How it works:
-  User says: "Buy 50 shares of Reliance at 2850"
-
-  Browser Web Speech API transcribes in real-time → free
-  
-  Parser extracts:
-    action: "buy"
-    quantity: 50
-    symbol: "RELIANCE" → lookup in SecurityMaster
-    price: 2850
-
-  Show confirmation dialog → user confirms → transaction created
-
-Fallback:
-  If symbol not recognized → show search results
-  If price not said → fetch current market price
-
-Cost: ₹0 (Web Speech API is free in Chrome/Edge)
+  1. User saves their Claude API key in Settings
+  2. System fetches live portfolio data (holdings, prices, P&L, CAGR)
+  3. Builds a structured context and sends to Claude API
+  4. Claude responds with analysis in the UI
+  5. User can ask follow-up questions in the same session
+  6. Conversation history kept for the session (not stored)
 ```
 
-### Feature 3: Broker CSV Import with Smart Mapping
+### 2.3 OMS / Broker Connections
 
 ```
-Flow:
-  1. User uploads CSV from broker (Zerodha, Upstox, etc.)
-  2. System reads headers and shows mapping UI:
-  
-     Your CSV Column    →    PMServer Field
-     ─────────────────────────────────────
-     "Symbol"           →    symbol ✓ (auto-detected)
-     "Qty"              →    shares_owned ✓
-     "Buy Price"        →    executed_price ✓
-     "Date"             →    createdAt ✓
-     "Trade Type"       →    tran_code (needs mapping)
-                                  "B" = buy ✓
-                                  "S" = sell ✓
+Supported (free API):
+  - Upstox Developer API v2 (free, OAuth)
+  - Fyers API v3 (free, OAuth)
 
-  3. Save mapping as "Zerodha Trade Book" template
-  4. Next upload → auto-apply saved mapping
-  5. Show preview: "12 new trades, 3 already imported — proceed?"
-  6. User confirms → import
+Coming soon:
+  - Angel Broking SmartAPI (free)
+  - 5paisa API (free)
+  - Groww (unofficial)
+  - Zerodha Kite Connect (₹2000/month — premium)
 
-Saved mappings stored per user in MongoDB:
-  { userId, mappingName, columnMap, brokerFormat }
+Connection flow:
+  1. User creates app at broker's developer portal (5 minutes)
+  2. Pastes API key + secret into PMServer Settings
+  3. Clicks "Connect" → redirected to broker login
+  4. After OAuth, positions auto-sync into selected portfolio
+  5. Manual sync on demand OR automatic nightly sync
 ```
 
----
-
-## 6. Open Platform + Donation Model
-
-### Why Open Source is the Right Call
-
-- **Builds trust** — users can see there's no hidden data harvesting (huge for financial data)
-- **Community contributions** — other developers add broker adapters for free
-- **No licensing cost** — MIT license, anyone can use
-- **Differentiator from commercial PMS** — commercial tools (Smallcase, Tickertape) are closed; yours is transparent
-
-### Recommended Open Source License
-
-Use **MIT License** — most permissive, attracts the most contributors.
-
-### Donation Infrastructure (Zero Platform Cost)
-
-| Platform | Fee | Setup |
-|---------|-----|-------|
-| **GitHub Sponsors** | 0% (GitHub covers it) | Best — shown directly on repo |
-| **Buy Me a Coffee** | 5% | Easy, professional |
-| **Ko-fi** | 0% on donations | Good alternative |
-| **Razorpay (India)** | 2% | Best for INR donations |
-| **UPI QR Code** | 0% | Simplest for Indian users |
-
-### Recommended Setup
+### 2.4 Deployment Options
 
 ```
-1. GitHub Sponsors (international donors)
-2. UPI QR code in README and app footer (Indian donors, zero fee)
-3. Ko-fi page for one-time and recurring support
+Option A — Railway.app (Recommended for beginners)
+  Cost: $0 → $5/month
+  Effort: 30 minutes setup
+  Steps: Connect GitHub → Add env vars → Deploy
 
-Add to your README:
-  "This tool is free forever. If it saves you time,
-   consider buying me a coffee ☕"
-```
+Option B — Render.com (Free tier with sleep)
+  Cost: $0 (sleeps after 15min idle)
+  Effort: 30 minutes
 
-### Sustainability Model
+Option C — Self-hosted VPS (Full control)
+  Cost: ₹200-500/month (DigitalOcean, Linode)
+  Effort: 1-2 hours (Docker + nginx)
 
-```
-Year 1: $0 hosting (free tiers), community growth
-Year 2: Donations cover $5-10/month hosting
-Year 3+: If popular, optional "Pro" cloud-hosted version
-         with automatic sync (users who don't want to self-host)
-         Keep self-hosted version always free
+Database: MongoDB Atlas M0 (always free, 512MB)
+Frontend: Vercel (free, global CDN)
 ```
 
 ---
 
-## 7. Implementation Tranches
+## 3. Cloud Hosting — Costs & Benefits
 
-> Each tranche is scoped to be completable in 1-2 Claude Code sessions. Earlier tranches unblock later ones.
+### Recommended Free Tier Setup
 
----
+| Service | What | Cost |
+|---------|------|------|
+| [Railway.app](https://railway.app) | Backend API (Node.js) | $0–$5/month |
+| [MongoDB Atlas](https://www.mongodb.com/atlas) | Database (M0 free cluster) | $0 forever |
+| [Vercel](https://vercel.com) | Frontend (Next.js) | $0 forever |
+| Total | Full production setup | **$0–$5/month** |
 
-### Tranche 1 — Stop the Bleeding (Critical Fixes)
+### Why Cloud Beats Running Locally
 
-**Goal:** Fix all P0/P1 bugs. Make the API safe and functional.
-**Token cost:** Low (targeted fixes, no new features)
+| Benefit | Detail |
+|---------|--------|
+| Always on | Friends/family can access it anytime |
+| Real HTTPS URL | `https://yourname.up.railway.app` |
+| Auto-deploy | Push to GitHub → live in 60 seconds |
+| No laptop needed | Server runs 24/7 without your computer |
+| Free SSL certificate | No certificate management |
+| MongoDB daily backups | Atlas backs up automatically |
+| Logs & monitoring | See errors in the dashboard |
 
-```
-Tasks:
-  1.1 Re-enable JWT authentication in index.js
-  1.2 Fix fileUploadService.js — reference correct SecurityMaster model
-  1.3 Fix ATHCutterService.js — replace yahooFinance.historical() with correct method
-  1.4 Move MongoDB URI to environment variable (config.js)
-  1.5 Add .env.example file with all required variables
-  1.6 Fix securityservice.js::getSecurityById() — remove req/res from service layer
-  1.7 Implement User.getUserHoldingIds() in User model (or fix auth middleware)
-  1.8 Add centralized error handling middleware to index.js
-
-Deliverable: A stable, authenticated API with no crash-level bugs
-```
-
----
-
-### Tranche 2 — Input Validation & Security Hardening
-
-**Goal:** Protect all endpoints from bad/malicious input.
-**Token cost:** Medium
+### Scaling Path
 
 ```
-Tasks:
-  2.1 Install Joi — add validation schemas for:
-       - User registration/login
-       - Portfolio create/update
-       - Transaction create
-       - Account create/update
-       - Exchange rate create/update
-  2.2 Add validation middleware helper (reusable)
-  2.3 Add helmet.js (security headers)
-  2.4 Add express-rate-limit (per IP, per user)
-  2.5 Add CORS configuration per environment
-  2.6 Add pagination to all list endpoints (page, limit query params)
-
-Deliverable: Production-safe API
+0-50 users:  Railway free → $0/month (may sleep)
+50-200 users: Railway Starter → $5/month (always on)
+200-1000 users: Railway Pro + Atlas M2 → $25/month
+1000+ users: Evaluate dedicated VPS or fly.io
 ```
 
 ---
 
-### Tranche 3 — Broker CSV Import with Smart Mapping
+## 4. Yahoo Finance Free API — Strategy
 
-**Goal:** Let users import their trade history from any broker.
-**Token cost:** High (new feature, new model, UI considerations)
+### Current Use (yahoo-finance2)
+- Unofficial scraper library — no API key needed
+- Rate limits apply if you call it on every request
+- **Solution:** Cache everything (already implemented — 5min TTL for prices)
 
-```
-Tasks:
-  3.1 Create ImportMapping model:
-       { userId, mappingName, brokerName, columnMap, dateFormat }
-  3.2 Build CSV parser service:
-       - Detect headers automatically
-       - Suggest field mappings using fuzzy matching
-       - Validate before import (preview mode)
-       - Deduplicate already-imported trades
-  3.3 Create import routes:
-       POST /api/import/preview    — parse and show what will be imported
-       POST /api/import/confirm    — execute the import
-       GET  /api/import/mappings   — get saved mappings for user
-       POST /api/import/mappings   — save a new mapping
-  3.4 Add import history tracking (what was imported, when, from which file)
-
-Pre-built mappings for common Indian brokers:
-  - Zerodha Trade Book
-  - Upstox Trade History
-  - Groww Portfolio Export
-  - Angel Broking Trade History
-
-Deliverable: Users can upload CSV and import trades in < 2 minutes
-```
-
----
-
-### Tranche 4 — Voice Position Entry
-
-**Goal:** Allow users to speak a trade and have it parsed and confirmed.
-**Token cost:** Medium (mainly frontend, light backend)
+### Smart Caching Strategy (Implemented)
 
 ```
-Tasks:
-  4.1 Backend: Voice command parser service
-       Input:  "Buy 50 Reliance at 2850"
-       Output: { action: "buy", qty: 50, symbol: "RELIANCE.NS", price: 2850 }
-  4.2 Backend: Fuzzy symbol matching (Reliance → RELIANCE.NS)
-  4.3 Backend: POST /api/voice/parse endpoint
-  4.4 Frontend: Web Speech API integration
-       - Record button (hold to speak)
-       - Real-time transcription display
-       - Parsed result → confirmation dialog
-       - "Yes, add it" → calls createTransaction endpoint
+Live prices:      5-minute cache (node-cache)
+Security master:  24-hour cache
+Exchange rates:   1-hour cache
+Price history:    MongoDB (permanent — fetched once, never re-fetched)
+CAGR:             MongoDB (recalculated monthly)
+```
 
-Deliverable: User speaks trade, confirms, position added
+### Hybrid Data Strategy for Indian Stocks
+
+```
+NSE/BSE stocks (primary):
+  → nse-data package (already installed) — official NSE data, free
+  → Yahoo Finance fallback
+
+US/Global stocks:
+  → Yahoo Finance (cached aggressively)
+  → Twelve Data (800 free req/day) as secondary
+
+Currency rates:
+  → European Central Bank free XML feed (zero rate limit)
+  → Open Exchange Rates (1000 req/month free)
 ```
 
 ---
 
-### Tranche 5 — OMS Broker API Connections
+## 5. Best Technology Stack (2026)
 
-**Goal:** Auto-sync holdings from supported brokers.
-**Token cost:** Very High (one adapter per broker)
-
-```
-Tasks:
-  5.1 Design BrokerAdapter interface:
-       interface BrokerAdapter {
-         connect(credentials): Promise<void>
-         getPositions(): Promise<Position[]>
-         getTrades(): Promise<Trade[]>
-         getAccountBalance(): Promise<Balance>
-       }
-  5.2 Implement Upstox adapter (free API, good docs)
-  5.3 Implement Fyers adapter (free API)
-  5.4 Create BrokerCredential model (encrypted storage)
-  5.5 Add broker sync cron job (nightly, or on-demand)
-  5.6 Add sync status tracking (last synced, errors)
-
-Routes:
-  POST /api/broker/connect         — link a broker account
-  POST /api/broker/:broker/sync    — trigger manual sync
-  GET  /api/broker/status          — sync status per broker
-
-Deliverable: Holdings auto-sync from linked broker accounts
-```
-
----
-
-### Tranche 6 — Frontend (Next.js)
-
-**Goal:** Build the web interface.
-**Token cost:** Very High (separate project)
+### Current Stack (Keep — Solid Choices)
 
 ```
-Pages:
-  /dashboard          — Portfolio overview, net worth, today's P&L
-  /portfolio/:id      — Portfolio detail, holdings table, allocation chart
-  /import             — CSV upload + mapping UI
-  /securities         — Search and add securities
-  /heatmap/:symbol    — Price history heat map
-  /accounts           — Bank/brokerage accounts
-  /settings           — Broker connections, profile
+Backend:   Node.js + Express.js + Babel
+Database:  MongoDB + Mongoose
+Auth:      JWT (jsonwebtoken + bcrypt)
+Cache:     node-cache (in-memory, zero setup)
+Market:    yahoo-finance2 + nse-data
+AI:        @anthropic-ai/sdk (Claude API)
+Jobs:      node-cron
+```
 
-Components:
-  - HoldingsTable (sort by gain/loss, symbol, weight)
-  - AllocationPieChart (current vs target)
-  - PriceHeatMap (monthly CAGR grid)
-  - VoiceButton (record → transcribe → confirm)
-  - ImportMapper (CSV column → PMS field)
-  - PerformanceChart (portfolio value over time)
+### Frontend (Built)
+
+```
+Framework:  Next.js 15 (App Router, React Server Components)
+Styling:    Tailwind CSS
+Charts:     Recharts (portfolio allocation, performance)
+Icons:      Lucide React
+AI Client:  @anthropic-ai/sdk
+Voice:      Web Speech API (built into Chrome/Edge — free)
+```
+
+### Future Upgrades (When Ready)
+
+```
+Logging:    Pino (structured JSON logs)
+Validation: Already Joi — consider Zod for TypeScript route
+Testing:    Jest + Supertest (unit + integration)
+CI/CD:      GitHub Actions (free for public repos)
+Redis:      Upstash Redis (serverless, free tier)
+            — upgrade from node-cache when deploying multi-instance
 ```
 
 ---
 
-### Tranche 7 — Performance, Caching & Reliability
+## 6. Database Decision
 
-**Goal:** Handle real load without hitting Yahoo Finance rate limits.
-**Token cost:** Medium
+### Verdict: Keep MongoDB + Plan PostgreSQL for v2
 
-```
-Tasks:
-  7.1 Add Upstash Redis client
-  7.2 Cache current prices (TTL: 5 min)
-  7.3 Cache security master list (TTL: 24 hours)
-  7.4 Cache exchange rates (TTL: 1 hour)
-  7.5 Add retry logic with exponential backoff for Yahoo Finance calls
-  7.6 Add circuit breaker (if Yahoo fails 3x, switch to cache-only mode)
-  7.7 Add health check endpoint: GET /health
-  7.8 Add structured logging with Pino
+**MongoDB (now):** Perfect for price history time-series, flexible Yahoo Finance data shapes, zero migration cost.
 
-Deliverable: 95%+ uptime even when Yahoo Finance is flaky
-```
+**PostgreSQL via Supabase (v2):** Better for relational financial reporting (XIRR, tax lots, audit trail). Free tier, built-in auth.
 
----
-
-### Tranche 8 — Donation & Community
-
-**Goal:** Set up the open source community and donation infrastructure.
-**Token cost:** Low
+### Hybrid Plan
 
 ```
-Tasks:
-  8.1 Add LICENSE file (MIT)
-  8.2 Add CONTRIBUTING.md (how to add a broker adapter)
-  8.3 Add GitHub Sponsors configuration (.github/FUNDING.yml)
-  8.4 Add donation links to README and app footer
-  8.5 Set up GitHub Issues templates (bug report, feature request, broker request)
-  8.6 Add Docker + docker-compose.yml for self-hosting
-  8.7 Write self-hosting guide (5-minute setup)
+MongoDB Atlas (free M0):
+  ├── pricedatas          ← 60+ flexible fields from Yahoo
+  ├── pricehistories      ← time-series OHLCV (high write)
+  ├── cargs               ← CAGR cache
+  ├── athTrackers         ← all-time highs
+  └── importhistory       ← audit trail
 
-Deliverable: Anyone can self-host and contribute
+PostgreSQL / Supabase (future v2):
+  ├── users               ← auth, profiles
+  ├── portfolios          ← relational
+  ├── transactions        ← ACID, tax lots
+  ├── accounts            ← multi-currency balance
+  └── securitymaster      ← reference data
 ```
 
 ---
 
-## Quick Start Recommendation
+## 7. Claude AI Integration — Portfolio Intelligence
 
-**If you're asking "what should I do first this week?"**
+### Architecture
 
 ```
-Day 1: Start with Tranche 1 (tell Claude: "implement Tranche 1 from VISION.md")
-         → Takes 1-2 Claude sessions
-         → Your API becomes secure and stable
+User → Frontend AI Chat UI
+         ↓
+    POST /api/ai/analyze
+    { question, analysisType, portfolioId }
+         ↓
+    Backend fetches:
+    - User's complete portfolio (holdings, prices, P&L)
+    - CAGR data for all holdings
+    - Sector allocation
+    - Account balances
+         ↓
+    Builds structured prompt with full portfolio context
+         ↓
+    Calls Claude API with user's own API key
+    Model: claude-sonnet-4-5 (best price/performance)
+         ↓
+    Streams response back to frontend
+         ↓
+    Chat UI renders markdown response
+```
 
-Day 2-3: Start Tranche 2 (validation and security)
-         → Your API is now production-ready
+### Context Sent to Claude
 
-Week 2: Deploy to Railway.app free tier
-         → Real URL, HTTPS, auto-deploy from GitHub
+```js
+// What the AI sees for every analysis:
+{
+  portfolio: {
+    name: "My Portfolio",
+    totalInvested: 500000,
+    currentValue: 625000,
+    gainLoss: +125000,
+    gainLossPercent: +25%,
+    holdings: [
+      {
+        symbol: "RELIANCE.NS",
+        name: "Reliance Industries",
+        quantity: 50,
+        avgPrice: 2600,
+        currentPrice: 2850,
+        gainLossPercent: 9.6%,
+        weightInPortfolio: 22.8%,
+        sector: "Energy",
+        cagr1yr: 12.3%, cagr3yr: 18.5%
+      },
+      // ... all holdings
+    ],
+    sectorAllocation: { Energy: 22.8%, IT: 31.2%, ... },
+    topGainers: [...],
+    topLosers: [...],
+  },
+  question: "Should I add more IT stocks or diversify?"
+}
+```
 
-Week 3+: Start Tranche 3 (CSV import)
-         → This is the feature that makes early users stay
+### Analysis Types
+
+| Type | What Claude Does |
+|------|-----------------|
+| `health` | Score 1-10, flag concentration, diversification gaps |
+| `performance` | Compare to Nifty 50, identify trends, CAGR context |
+| `rebalance` | Target vs actual allocation, buy/reduce suggestions |
+| `deep-dive` | Pick one stock, give fundamental + technical context |
+| `risk` | Beta, volatility, max drawdown, correlation |
+| `tax` | STCG/LTCG holding periods, which to sell for tax efficiency |
+| `chat` | Free-form Q&A about the portfolio |
+
+### API Key Security Model
+
+```
+User's Claude API key:
+  - Stored in MongoDB UserSettings collection
+  - NEVER logged or exposed in API responses
+  - Used server-side only (never sent to frontend)
+  - User can delete it anytime from Settings
+  - Each user uses their own Anthropic billing account
+  - Monthly cost estimate: ~$1-5 for typical usage
+    (claude-sonnet-4-5: $3/M input tokens, $15/M output)
 ```
 
 ---
 
-## Prompting Tips for Claude Code (Since You're New)
+## 8. Excel / CSV Holdings Import
 
-Being specific gets better results than being vague:
+### Supported Formats
 
 ```
-VAGUE (avoid):
-  "Fix the bugs"
-
-SPECIFIC (use this):
-  "Implement Tranche 1 from VISION.md. Start with task 1.1:
-   re-enable authenticateJWT middleware in index.js, then move
-   to task 1.2. Fix one task at a time and tell me when each is done."
+Format        Extension    Library Used
+─────────────────────────────────────────
+Excel 2007+   .xlsx        xlsx (SheetJS)
+Excel Legacy  .xls         xlsx (SheetJS)
+CSV           .csv         csv-parser
 ```
 
-Other useful prompts:
-- `"Read [filename] and explain what this function does"` — understand code first
-- `"Before changing anything, show me what you plan to do"` — review before execution
-- `"Only change what's needed for this task, don't refactor other things"` — keep scope tight
-- `"Show me the diff before writing it"` — see changes before they're applied
+### Smart Column Mapping
+
+```
+Your Excel might have:               PMServer needs:
+─────────────────────────────────────────────────────
+"Scrip Name" or "Stock"         →   symbol
+"Qty" or "Quantity" or "Units"  →   shares_owned
+"Avg Cost" or "Buy Price"       →   executed_price
+"Date of Purchase"              →   createdAt
+"B/S" or "Transaction Type"    →   tran_code
+"Value" or "Amount"             →   cost_basis
+
+Auto-detection: fuzzy matching against 50+ known aliases
+Save as template: reuse for next import from same format
+```
+
+### Pre-built Excel Templates
+
+Download these templates, fill in your holdings, upload:
+
+```
+1. Simple Holdings Template    — symbol, qty, price, date
+2. Trade History Template      — buy/sell with dates
+3. Zerodha P&L Template        — works with Zerodha's export
+4. Groww Portfolio Export       — works with Groww's export
+```
+
+### Import Flow (Step by Step)
+
+```
+1. Select portfolio  →  "My Main Portfolio"
+2. Upload file       →  drag .xlsx or .csv
+3. Auto-mapping      →  system suggests column matches
+4. Review mapping    →  adjust if needed, save as template
+5. Preview           →  see 20 sample rows before importing
+6. Confirmation      →  "Import 47 trades? (3 duplicates skipped)"
+7. Done              →  positions created, import history saved
+```
 
 ---
 
-*Document generated: April 2026 | PMServer Engineering Strategy*
+## 9. Open Platform + Donation Model
+
+### Why Open Source
+
+- **Trust:** Financial data tool — users need to see the code
+- **Community:** Others add broker adapters, bug fixes, features
+- **Indian market:** No good open-source PMS exists for NSE/BSE retail investors
+- **Differentiator vs Smallcase/Tickertape:** Fully self-hostable, data stays yours
+
+### Donation Links (Add to README and Footer)
+
+```
+GitHub Sponsors:  https://github.com/sponsors/jayakumarsharp
+Buy Me a Coffee:  https://buymeacoffee.com/jayakumar
+Ko-fi:            https://ko-fi.com/jayakumar
+UPI (India):      Scan QR code in app (zero fees, direct)
+
+Tagline: "This tool is free forever.
+          If it saves you ₹ on advisory fees, share ₹ back."
+```
+
+### Community
+
+```
+GitHub Issues    → Bug reports, feature requests
+GitHub Discussions → Questions, showcase your setup
+CONTRIBUTING.md  → How to add a broker adapter
+```
+
+---
+
+## 10. Deployment Guide
+
+### Backend — Railway.app (30 minutes)
+
+```bash
+# Step 1: Push code to GitHub (done ✓)
+
+# Step 2: Go to railway.app → New Project → Deploy from GitHub
+#         Select: jayakumarsharp/PMServer
+
+# Step 3: Add environment variables in Railway dashboard:
+SECRET_KEY=<generate: openssl rand -hex 32>
+MONGODB_URI=<paste from MongoDB Atlas>
+PORT=3003
+NODE_ENV=production
+ALLOWED_ORIGINS=https://your-frontend.vercel.app
+FRONTEND_URL=https://your-frontend.vercel.app
+
+# Step 4: Railway auto-detects Node.js and deploys
+#         Your URL: https://pmserver-production.up.railway.app
+```
+
+### Database — MongoDB Atlas (15 minutes)
+
+```bash
+# Step 1: atlas.mongodb.com → Create free account
+# Step 2: Create a cluster → Choose M0 Free tier
+# Step 3: Create a database user (username + password)
+# Step 4: Network access → Allow 0.0.0.0/0 (or Railway's IP)
+# Step 5: Connect → Copy connection string:
+#   mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/pmserver
+
+# Paste this as MONGODB_URI in Railway dashboard
+```
+
+### Frontend — Vercel (15 minutes)
+
+```bash
+# Step 1: vercel.com → Import Git Repository
+#         Select: jayakumarsharp/PMServer
+#         Root Directory: client
+
+# Step 2: Add environment variable:
+NEXT_PUBLIC_API_URL=https://pmserver-production.up.railway.app
+
+# Step 3: Deploy → Your URL: https://pmserver-client.vercel.app
+```
+
+### docker-compose (Self-hosted VPS)
+
+```bash
+# On your VPS (Ubuntu/Debian):
+git clone https://github.com/jayakumarsharp/PMServer
+cd PMServer
+cp .env.example .env
+# Edit .env with your values
+docker-compose up -d
+
+# Access at: http://your-server-ip:3003
+```
+
+---
+
+## 11. Implementation Tranches (All)
+
+### ✅ Completed
+
+| Tranche | Feature | Files |
+|---------|---------|-------|
+| T1 | Security fixes (JWT, bugs, config) | index.js, middleware/, config.js |
+| T2 | Validation (Joi) + security (helmet, rate-limit) | validations/schemas.js |
+| T3 | CSV import with smart mapping | services/importService.js, routes/importRouter.js |
+| T4 | Voice command parser | services/voiceService.js, routes/voiceRouter.js |
+| T5 | Broker adapters (Upstox, Fyers) | services/brokers/, routes/brokerRouter.js |
+| T7 | Price cache (node-cache) | lib/cache.js |
+| T8 | Docker, LICENSE, community files | Dockerfile, docker-compose.yml |
+| Frontend | Next.js app, all pages | client/ |
+
+### ✅ Now Adding
+
+| Tranche | Feature |
+|---------|---------|
+| T9 | **Excel (.xlsx/.xls) import** — SheetJS integration |
+| T10 | **Claude AI analysis** — portfolio intelligence service |
+
+### 📋 Next (Future Sessions)
+
+| Tranche | Feature | Priority |
+|---------|---------|----------|
+| T11 | XIRR / IRR portfolio returns calculation | High |
+| T12 | Dividend tracking and income calendar | High |
+| T13 | Tax report — STCG/LTCG holding period calculator | High |
+| T14 | Portfolio benchmarking vs Nifty 50 / Sensex | Medium |
+| T15 | Price alerts (email / push notification) | Medium |
+| T16 | SIP tracker with projection charts | Medium |
+| T17 | Angel Broking SmartAPI adapter | Medium |
+| T18 | Full test suite (Jest + Supertest, 80% coverage) | Medium |
+| T19 | PostgreSQL migration for core relational data | Low |
+| T20 | Mobile PWA (offline support, push notifications) | Low |
+
+---
+
+## 12. Prompting Guide for Claude Code
+
+Since you are new to Claude Code, here are the exact prompts to use:
+
+### Start a new feature
+
+```
+"Implement Tranche 11 from VISION.md — XIRR calculation.
+ Read services/portfolioService.js first, then build the XIRR
+ function in a new services/xirr.js. Add a route GET /api/portfolio/:id/xirr.
+ Do not change any existing files unless necessary."
+```
+
+### Fix a bug
+
+```
+"I'm getting this error when calling POST /api/import/confirm:
+ [paste full error message]
+ Read services/importService.js and find the root cause. Fix it."
+```
+
+### Understand existing code
+
+```
+"Read services/pricehistoryservice.js and explain what
+ getCagrResults() does in plain English. Don't change anything."
+```
+
+### Run and test
+
+```
+"Start the server with yarn dev and tell me if there are any
+ startup errors."
+```
+
+### Deploy help
+
+```
+"I'm deploying to Railway. Read VISION.md section 10 and walk me
+ through each step. Ask me to confirm before moving to the next step."
+```
+
+---
+
+*PMServer — Built for Indian retail investors, open to the world.*
+*MIT License | Free forever | Donations welcome*

@@ -25,6 +25,7 @@ import heatMapRouter from "./routes/heatMapRouter";
 import importRouter from "./routes/importRouter";
 import voiceRouter from "./routes/voiceRouter";
 import brokerRouter from "./routes/brokerRouter";
+import claudeRouter from "./routes/claudeRouter";
 
 require("./Cron/cronjob");
 
@@ -104,6 +105,7 @@ app.use("/api/exhangerate", exhangerouter);
 app.use("/api/import", importRouter);
 app.use("/api/voice", voiceRouter);
 app.use("/api/broker", brokerRouter);
+app.use("/api/ai", claudeRouter);
 
 // Centralized error handler — must be AFTER all routes
 app.use((err, _req, res, _next) => {

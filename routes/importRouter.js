@@ -20,7 +20,18 @@ const storage = multer.diskStorage({
     cb(null, `${unique}${path.extname(file.originalname)}`);
   },
 });
-const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB max
+const ALLOWED_EXTENSIONS = /\.(csv|xlsx|xls)$/i;
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max (Excel files can be larger)
+  fileFilter: (_req, file, cb) => {
+    if (ALLOWED_EXTENSIONS.test(path.extname(file.originalname))) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only CSV, XLSX, and XLS files are allowed"));
+    }
+  },
+});
 
 // GET /api/import/templates — built-in broker templates
 importRouter.get("/templates", async (_req, res, next) => {
