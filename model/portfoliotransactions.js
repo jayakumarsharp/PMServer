@@ -11,7 +11,14 @@ const portfolioTransactionsschema = new mongoose.Schema({
   tran_code: { type: String },
   executed_price: { type: Number },
   target_percentage: { type: Number },
-  goal: { type: Number },
+  goal: { type: String },
+  // Broker fee tracking
+  broker_id: {
+    type: mongoose.Schema.ObjectId,
+    ref: "Broker",
+  },
+  commission: { type: Number, default: 0 },
+  currency: { type: String, uppercase: true, default: "INR" },
   portfolio_id: {
     type: mongoose.Schema.ObjectId,
     ref: "Portfolio",

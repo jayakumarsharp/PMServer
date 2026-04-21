@@ -39,8 +39,27 @@ const createTransactionSchema = Joi.object({
   target_percentage: Joi.number().min(0).max(100),
   goal: Joi.string().max(200).allow("", null),
   portfolio_id: Joi.string().required(),
+  broker_id: Joi.string().allow("", null),
   createdBy: Joi.string(),
 });
+
+// ── Broker fee config ─────────────────────────────────────────────────────────
+const createBrokerConfigSchema = Joi.object({
+  name: Joi.string().min(1).max(100).required(),
+  buy_commission: Joi.number().min(0).required(),
+  sell_commission: Joi.number().min(0).required(),
+  default_currency: Joi.string().length(3).uppercase().default("USD"),
+  notes: Joi.string().max(500).allow("", null),
+  user_id: Joi.string().required(),
+});
+
+const updateBrokerConfigSchema = Joi.object({
+  name: Joi.string().min(1).max(100),
+  buy_commission: Joi.number().min(0),
+  sell_commission: Joi.number().min(0),
+  default_currency: Joi.string().length(3).uppercase(),
+  notes: Joi.string().max(500).allow("", null),
+}).min(1);
 
 // ── Account ───────────────────────────────────────────────────────────────────
 const createAccountSchema = Joi.object({
@@ -114,5 +133,7 @@ module.exports = {
   createExchangeRateSchema,
   saveMappingSchema,
   voiceParseSchema,
+  createBrokerConfigSchema,
+  updateBrokerConfigSchema,
   validate,
 };

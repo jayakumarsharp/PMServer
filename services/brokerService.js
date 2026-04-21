@@ -1,4 +1,5 @@
 import BrokerCredential from "../model/BrokerCredential";
+import Broker from "../model/Broker";
 import { UpstoxAdapter } from "./brokers/UpstoxAdapter";
 import { FyersAdapter } from "./brokers/FyersAdapter";
 import { PortfolioTransactions } from "../model/portfoliotransactions";
@@ -118,4 +119,26 @@ export async function syncBrokerPositions({ userId, broker, portfolioId }) {
 
 export async function getBrokerStatus(userId) {
   return BrokerCredential.find({ userId }).select("-apiSecret -accessToken -refreshToken").lean();
+}
+
+// ── Broker fee config (VIO Bank, etc.) ────────────────────────────────────────
+
+export async function createBrokerConfig({ user_id, name, buy_commission, sell_commission, default_currency, notes }) {
+  return Broker.create({ user_id, name, buy_commission, sell_commission, default_currency, notes });
+}
+
+export async function getBrokerConfigsByUser(user_id) {
+  return Broker.find({ user_id }).lean();
+}
+
+export async function getBrokerConfigById(id) {
+  return Broker.findById(id).lean();
+}
+
+export async function updateBrokerConfig(id, data) {
+  return Broker.findByIdAndUpdate(id, data, { new: true, runValidators: true }).lean();
+}
+
+export async function deleteBrokerConfig(id) {
+  return Broker.findByIdAndDelete(id).lean();
 }

@@ -7,7 +7,14 @@ import {
   handleOAuthCallback,
   syncBrokerPositions,
   getBrokerStatus,
+  createBrokerConfig,
+  getBrokerConfigsByUser,
+  getBrokerConfigById,
+  updateBrokerConfig,
+  deleteBrokerConfig,
 } from "../services/brokerService";
+import { validate } from "../validations/schemas";
+import { createBrokerConfigSchema, updateBrokerConfigSchema } from "../validations/schemas";
 
 const brokerRouter = express.Router();
 
@@ -66,6 +73,52 @@ brokerRouter.post("/:broker/sync", ensureLoggedIn, async (req, res, next) => {
       portfolioId,
     });
     res.json(result);
+  } catch (e) { next(e); }
+});
+
+// ── Broker fee config endpoints ───────────────────────────────────────────────
+
+// POST /api/broker/config — create a broker fee config (e.g. "VIO Bank, buy $0.50, sell $0.50")
+brokerRouter.post("/config", validate(createBrokerConfigSchema), async (req, res, next) => {
+  try {
+    const config = await createBrokerConfig(req.body);
+    res.status(201).json(config);
+  } catch (e) { next(e); }
+});
+
+// GET /api/broker/config?user_id=xxx — list all broker configs for a user
+brokerRouter.get("/config", async (req, res, next) => {
+  try {
+    const { user_id } = req.query;
+    if (!user_id) return res.status(400).json({ error: "user_id query param is required" });
+    res.json(await getBrokerConfigsByUser(user_id));
+  } catch (e) { next(e); }
+});
+
+// GET /api/broker/config/:id — get a single broker config
+brokerRouter.get("/config/:id", async (req, res, next) => {
+  try {
+    const config = await getBrokerConfigById(req.params.id);
+    if (!config) return res.status(404).json({ error: "Broker config not found" });
+    res.json(config);
+  } catch (e) { next(e); }
+});
+
+// PATCH /api/broker/config/:id — update a broker config
+brokerRouter.patch("/config/:id", validate(updateBrokerConfigSchema), async (req, res, next) => {
+  try {
+    const config = await updateBrokerConfig(req.params.id, req.body);
+    if (!config) return res.status(404).json({ error: "Broker config not found" });
+    res.json(config);
+  } catch (e) { next(e); }
+});
+
+// DELETE /api/broker/config/:id — delete a broker config
+brokerRouter.delete("/config/:id", async (req, res, next) => {
+  try {
+    const config = await deleteBrokerConfig(req.params.id);
+    if (!config) return res.status(404).json({ error: "Broker config not found" });
+    res.json({ deleted: true });
   } catch (e) { next(e); }
 });
 

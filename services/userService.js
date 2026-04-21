@@ -126,9 +126,13 @@ async function getUserWithPortfoliosAndHoldings(username) {
               holdings[securitySymbol] = {
                 shares_owned: 0,
                 value: 0,
+                total_commissions: 0,
                 secid: transaction.symbol._id,
+                currency: transaction.currency || "INR",
               };
             }
+
+            holdings[securitySymbol].total_commissions += transaction.commission || 0;
 
             if (transaction.tran_code === "by") {
               holdings[securitySymbol].shares_owned += transaction.shares_owned;
@@ -141,24 +145,33 @@ async function getUserWithPortfoliosAndHoldings(username) {
 
           const holdingsArray = await Promise.all(
             Object.entries(holdings).map(
-              async ([securitySymbol, { shares_owned, value, secid }]) => {
-                // Fetch the regularMarketPrice for the securitySymbol
+              async ([securitySymbol, { shares_owned, value, total_commissions, secid, currency }]) => {
                 const priceData = await PriceData.findOne({
                   securityMaster_id: secid,
                 }).select("regularMarketPrice");
 
                 const regularMarketPrice = priceData
                   ? priceData.regularMarketPrice
-                  : 0; // Default to 0 if priceData is null
+                  : 0;
 
                 const totalInvested = value;
                 const todayValue = shares_owned * regularMarketPrice;
+                const grossPnl = todayValue - totalInvested;
+                const netPnl = grossPnl - total_commissions;
                 const gainLossPercent =
                   totalInvested !== 0
-                    ? ((todayValue - totalInvested) / totalInvested) * 100
-                    : 0; // Avoid division by zero
+                    ? (grossPnl / totalInvested) * 100
+                    : 0;
+                const netGainLossPercent =
+                  totalInvested !== 0
+                    ? (netPnl / totalInvested) * 100
+                    : 0;
                 const averageBuyPrice =
                   shares_owned !== 0 ? totalInvested / shares_owned : 0;
+                const breakEvenPrice =
+                  shares_owned !== 0
+                    ? (totalInvested + total_commissions) / shares_owned
+                    : 0;
 
                 return {
                   portfolioid: portfolio._id,
@@ -169,8 +182,14 @@ async function getUserWithPortfoliosAndHoldings(username) {
                   regular_market_price: regularMarketPrice,
                   total_invested: totalInvested,
                   today_value: todayValue,
-                  gain_loss_percent: gainLossPercent,
+                  total_commissions,
+                  gross_pnl: +grossPnl.toFixed(4),
+                  net_pnl: +netPnl.toFixed(4),
+                  gain_loss_percent: +gainLossPercent.toFixed(2),
+                  net_gain_loss_percent: +netGainLossPercent.toFixed(2),
                   average_buy_price: averageBuyPrice,
+                  break_even_price: +breakEvenPrice.toFixed(4),
+                  currency,
                 };
               }
             )
