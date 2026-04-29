@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; [ -z \"$f\" ] && exit 0; git -C /home/user/PMServer add \"$f\" && git -C /home/user/PMServer commit -m \"auto: $(basename \\\"$f\\\") updated\"; } 2>/dev/null || true",
+            "statusMessage": "Auto-committing change..."
+          }
+        ]
+      }
+    ]
+  }
+}
