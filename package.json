@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon --exec babel-node index.js",
+    "start:prod": "node -r @babel/register index.js",
     "dev:client": "cd client && npm run dev",
     "serve": "concurrently --names \"API,UI\" --prefix-colors \"cyan,magenta\" \"yarn start\" \"yarn dev:client\"",
     "test": "echo \"Error: no test specified\" && exit 1"
