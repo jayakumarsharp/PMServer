@@ -5,8 +5,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd /home/user/PMServer && git status --porcelain | grep -q . || exit 0; files=$(git diff --name-only HEAD 2>/dev/null; git ls-files --others --exclude-standard 2>/dev/null); git add -A && git commit -m \"auto: $(echo \\\"$files\\\" | awk -F/ '{print $NF}' | head -3 | tr '\\n' ' ' | sed 's/ $//')\"",
-            "statusMessage": "Auto-committing completed changes..."
+            "command": "cd /home/user/PMServer && git status --porcelain | grep -q . || exit 0; files=$(git diff --name-only HEAD 2>/dev/null; git ls-files --others --exclude-standard 2>/dev/null); git add -A && git commit -m \"auto: $(echo \\\"$files\\\" | awk -F/ '{print $NF}' | head -3 | tr '\\n' ' ' | sed 's/ $//') \" && git push origin main",
+            "statusMessage": "Auto-committing and pushing changes..."
           }
         ]
       }
