@@ -1,13 +1,12 @@
 {
   "hooks": {
-    "PostToolUse": [
+    "Stop": [
       {
-        "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; [ -z \"$f\" ] && exit 0; git -C /home/user/PMServer add \"$f\" && git -C /home/user/PMServer commit -m \"auto: $(basename \\\"$f\\\") updated\"; } 2>/dev/null || true",
-            "statusMessage": "Auto-committing change..."
+            "command": "cd /home/user/PMServer && git status --porcelain | grep -q . || exit 0; files=$(git diff --name-only HEAD 2>/dev/null; git ls-files --others --exclude-standard 2>/dev/null); git add -A && git commit -m \"auto: $(echo \\\"$files\\\" | awk -F/ '{print $NF}' | head -3 | tr '\\n' ' ' | sed 's/ $//')\"",
+            "statusMessage": "Auto-committing completed changes..."
           }
         ]
       }
