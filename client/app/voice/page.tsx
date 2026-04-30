@@ -5,10 +5,29 @@ import { voice, transactions } from "@/lib/api";
 import { Mic, MicOff, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
 import type { VoiceResult } from "@/lib/api";
 
+interface ISpeechRecognition extends EventTarget {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  start(): void;
+  stop(): void;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onend: (() => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+}
+
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+}
+
 declare global {
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
+    SpeechRecognition: new () => ISpeechRecognition;
+    webkitSpeechRecognition: new () => ISpeechRecognition;
   }
 }
 
@@ -20,7 +39,7 @@ export default function VoicePage() {
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<ISpeechRecognition | null>(null);
 
   const startListening = useCallback(() => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -31,15 +50,15 @@ export default function VoicePage() {
     rec.interimResults = true;
     rec.maxAlternatives = 1;
 
-    rec.onresult = (event) => {
+    rec.onresult = (event: SpeechRecognitionEvent) => {
       const text = Array.from(event.results)
-        .map((r) => r[0].transcript)
+        .map((r: SpeechRecognitionResult) => r[0].transcript)
         .join(" ");
       setTranscript(text);
     };
 
     rec.onend = () => setListening(false);
-    rec.onerror = (e) => { setError(`Speech error: ${e.error}`); setListening(false); };
+    rec.onerror = (e: SpeechRecognitionErrorEvent) => { setError(`Speech error: ${e.error}`); setListening(false); };
 
     rec.start();
     recognitionRef.current = rec;
@@ -59,7 +78,7 @@ export default function VoicePage() {
     setLoading(true);
     setError("");
     try {
-      const r = await voice.parse(transcript);
+      const r = await voice.parse(transcript) as VoiceResult;
       setResult(r);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Parse failed");

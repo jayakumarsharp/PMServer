@@ -24,8 +24,9 @@ export default function PortfolioDetailPage() {
 
   useEffect(() => {
     if (!id) return;
-    portfolios.get(id).then((data: { existingPortfolio: Portfolio }) => {
-      setPortfolio(data.existingPortfolio);
+    portfolios.get(id).then((data) => {
+      const d = data as { existingPortfolio: Portfolio };
+      setPortfolio(d.existingPortfolio);
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [id]);
@@ -144,7 +145,7 @@ export default function PortfolioDetailPage() {
                   <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label={false}>
                     {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                   </Pie>
-                  <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ background: "#111827", border: "1px solid #374151" }} />
+                  <Tooltip formatter={(v) => fmt(Number(v))} contentStyle={{ background: "#111827", border: "1px solid #374151" }} />
                   <Legend iconSize={10} wrapperStyle={{ fontSize: 11 }} />
                 </PieChart>
               </ResponsiveContainer>
