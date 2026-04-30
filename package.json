@@ -9,6 +9,7 @@
     "dev:client": "cd client && npm run dev",
     "serve": "concurrently --names \"API,UI\" --prefix-colors \"cyan,magenta\" \"yarn start\" \"yarn dev:client\"",
     "vercel-build": "babel . --out-dir dist --extensions .js --ignore node_modules,client,dist,uploads,api",
+    "postinstall": "node -e \"if(process.env.VERCEL)require('child_process').execSync('yarn vercel-build',{stdio:'inherit'})\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {

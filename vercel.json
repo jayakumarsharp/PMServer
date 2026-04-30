@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "yarn vercel-build",
   "installCommand": "yarn install",
   "rewrites": [
     { "source": "/(.*)", "destination": "/api/index" }
