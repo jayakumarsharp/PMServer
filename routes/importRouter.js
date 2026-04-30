@@ -13,8 +13,11 @@ import {
 
 const importRouter = express.Router();
 
+// Vercel serverless only allows writes to /tmp; local/Railway use the uploads/ directory
+const UPLOAD_DIR = process.env.VERCEL ? "/tmp" : "uploads/";
+
 const storage = multer.diskStorage({
-  destination: "uploads/",
+  destination: UPLOAD_DIR,
   filename: (_req, file, cb) => {
     const unique = `${Date.now()}-${Math.round(Math.random() * 1e6)}`;
     cb(null, `${unique}${path.extname(file.originalname)}`);

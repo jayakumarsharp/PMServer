@@ -186,17 +186,16 @@ async function fetchDataAndUpdate() {
   }
 }
 
-// Schedule the CRON job
-cron.schedule('*/30 * * * *', () => {
+// Schedule the CRON job (only when this file is required directly, i.e. local/Railway)
+cron.schedule("*/30 * * * *", () => {
   console.log("Running the CRON job...");
   fetchDataAndUpdate();
 });
 
-
-console.log(
-  "CRON job scheduled. It will run according to the defined interval."
-);
+console.log("CRON job scheduled. It will run according to the defined interval.");
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+module.exports = { fetchDataAndUpdate };

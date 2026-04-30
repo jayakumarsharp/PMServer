@@ -27,11 +27,11 @@ import voiceRouter from "./routes/voiceRouter";
 import brokerRouter from "./routes/brokerRouter";
 import claudeRouter from "./routes/claudeRouter";
 
-require("./Cron/cronjob");
+const IS_VERCEL = !!process.env.VERCEL;
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+if (!IS_VERCEL) socketIo(server); // Socket.IO only in local/Railway (needs persistent server)
 
 // Trust Railway/Render/Vercel reverse proxy — required for rate limiting by real IP
 app.set("trust proxy", 1);
@@ -110,6 +110,19 @@ app.use("/api/voice", voiceRouter);
 app.use("/api/broker", brokerRouter);
 app.use("/api/ai", claudeRouter);
 
+// Vercel cron endpoint — called daily by Vercel to refresh prices
+// (Hobby plan: once per day max. Pro plan: every 30 min)
+app.get("/api/cron/refresh", async (_req, res) => {
+  try {
+    const { fetchDataAndUpdate } = require("./Cron/cronjob");
+    await fetchDataAndUpdate();
+    res.json({ ok: true, ts: new Date().toISOString() });
+  } catch (e) {
+    console.error("Cron refresh error:", e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 // Centralized error handler — must be AFTER all routes
 app.use((err, _req, res, _next) => {
   const status = err.status || 500;
@@ -118,13 +131,15 @@ app.use((err, _req, res, _next) => {
   res.status(status).json({ error: message });
 });
 
-// Protected route
-// app.get("/api/protected", authenticateJWT, (req, res) => {
-//   res.json({ message: "You are authorized!" });
-// });
+// Start HTTP server in local/Railway environments only.
+// On Vercel, the app is exported as a serverless function handler.
+if (!IS_VERCEL) {
+  require("./Cron/cronjob"); // schedule background price refresh locally
+  server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+    const cookiePath = path.join(os.homedir(), ".yf2-cookies.json");
+    console.log("cookiePath", cookiePath);
+  });
+}
 
-server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  const cookiePath = path.join(os.homedir(), ".yf2-cookies.json");
-  console.log('cookiePath', cookiePath);
-});
+export default app;
