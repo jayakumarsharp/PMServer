@@ -33,6 +33,9 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
+// Trust Railway/Render/Vercel reverse proxy — required for rate limiting by real IP
+app.set("trust proxy", 1);
+
 // Security headers
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 
