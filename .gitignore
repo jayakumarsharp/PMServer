@@ -19,8 +19,8 @@ uploads/*
 !uploads/.gitkeep
 
 # Build output
-dist/
 build/
+# dist/ is intentionally committed — it's the pre-compiled backend for Vercel serverless
 
 # Logs
 *.log

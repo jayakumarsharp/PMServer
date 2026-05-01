@@ -41,8 +41,9 @@ app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 
 // CORS — allow all in dev; lock down in production via env
 const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",")
+  ? process.env.ALLOWED_ORIGINS.split(",").map(o => o.trim())
   : ["http://localhost:3000", "http://localhost:3003"];
+console.log("CORS allowedOrigins:", allowedOrigins);
 
 app.use(cors({
   origin: (origin, cb) => {
