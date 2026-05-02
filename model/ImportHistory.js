@@ -13,7 +13,11 @@ const importHistorySchema = new mongoose.Schema(
     status: { type: String, enum: ["preview", "completed", "failed"], default: "preview" },
     errors: [{ row: Number, message: String }],
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    // `errors` is an intentional field in import history documents.
+    suppressReservedKeysWarning: true,
+  }
 );
 
 const ImportHistory = mongoose.model("ImportHistory", importHistorySchema);
