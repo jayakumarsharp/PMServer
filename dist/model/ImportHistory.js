@@ -51,7 +51,9 @@ var importHistorySchema = new _mongoose["default"].Schema({
     message: String
   }]
 }, {
-  timestamps: true
+  timestamps: true,
+  // `errors` is an intentional field in import history documents.
+  suppressReservedKeysWarning: true
 });
 var ImportHistory = _mongoose["default"].model("ImportHistory", importHistorySchema);
 var _default = exports["default"] = ImportHistory;

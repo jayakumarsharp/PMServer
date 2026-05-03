@@ -21,14 +21,16 @@ var connectDB = exports.connectDB = /*#__PURE__*/function () {
           _context.next = 3;
           return mongoose.connect(MONGODB_URI, {});
         case 3:
-          console.log('MongoDB connected to', MONGODB_URI);
+          console.log("MongoDB connected");
           _context.next = 10;
           break;
         case 6:
           _context.prev = 6;
           _context.t0 = _context["catch"](0);
-          console.error('MongoDB connection error:', _context.t0);
-          process.exit(1);
+          console.error("MongoDB connection error:", _context.t0);
+          if (!process.env.VERCEL) {
+            process.exit(1);
+          }
         case 10:
         case "end":
           return _context.stop();

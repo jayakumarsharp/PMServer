@@ -28,7 +28,8 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 var bcrypt = require("bcrypt");
 var _require = require("../expressError"),
   NotFoundError = _require.NotFoundError,
-  BadRequestError = _require.BadRequestError;
+  BadRequestError = _require.BadRequestError,
+  UnauthorizedError = _require.UnauthorizedError;
 function register(_x) {
   return _register.apply(this, arguments);
 }
@@ -68,7 +69,8 @@ function _register() {
           console.log("Inserted user result:", result);
           return _context.abrupt("return", {
             username: result.username,
-            email: result.email
+            email: result.email,
+            _id: result._id
           });
         case 16:
         case "end":

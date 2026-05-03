@@ -11,7 +11,9 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 var express = require("express");
 var userRouter = express.Router();
 var _require = require("../middleware/auth"),
-  ensureCorrectUser = _require.ensureCorrectUser;
+  ensureCorrectUser = _require.ensureCorrectUser,
+  ensureLoggedIn = _require.ensureLoggedIn,
+  ensureSameUserAsParam = _require.ensureSameUserAsParam;
 require("../expressError");
 var User = require("../services/userService");
 var _require2 = require("../helpers/tokens"),
@@ -42,7 +44,7 @@ var _require3 = require("../validations/schemas"),
  */
 userRouter.post("/register", validate(registerSchema), /*#__PURE__*/function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(req, res, next) {
-    var _req$body, username, password, email, user, newUser;
+    var _req$body, username, password, email, user, newUser, token;
     return _regeneratorRuntime().wrap(function _callee$(_context) {
       while (1) switch (_context.prev = _context.next) {
         case 0:
@@ -58,21 +60,23 @@ userRouter.post("/register", validate(registerSchema), /*#__PURE__*/function () 
           return User.register(user);
         case 6:
           newUser = _context.sent;
+          token = createToken(newUser);
           res.json({
             username: newUser.username,
-            email: newUser.email
+            email: newUser.email,
+            token: token
           });
-          _context.next = 13;
+          _context.next = 14;
           break;
-        case 10:
-          _context.prev = 10;
+        case 11:
+          _context.prev = 11;
           _context.t0 = _context["catch"](0);
           next(_context.t0);
-        case 13:
+        case 14:
         case "end":
           return _context.stop();
       }
-    }, _callee, null, [[0, 10]]);
+    }, _callee, null, [[0, 11]]);
   }));
   return function (_x, _x2, _x3) {
     return _ref.apply(this, arguments);
@@ -86,10 +90,7 @@ userRouter.post("/register", validate(registerSchema), /*#__PURE__*/function () 
  *
  * Authorization required: same user-as-:username
  **/
-userRouter.get("/:username",
-/*#__PURE__*/
-// ensureCorrectUser,
-function () {
+userRouter.get("/:username", ensureLoggedIn, ensureSameUserAsParam("username"), /*#__PURE__*/function () {
   var _ref2 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee2(req, res, next) {
     var user;
     return _regeneratorRuntime().wrap(function _callee2$(_context2) {
@@ -128,10 +129,7 @@ function () {
  * Authorization required: same user-as-:username
  **/
 
-userRouter.get("/:username/complete",
-/*#__PURE__*/
-//  ensureCorrectUser,
-function () {
+userRouter.get("/:username/complete", ensureLoggedIn, ensureSameUserAsParam("username"), /*#__PURE__*/function () {
   var _ref3 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee3(req, res, next) {
     var user;
     return _regeneratorRuntime().wrap(function _callee3$(_context3) {
@@ -167,7 +165,7 @@ function () {
  * Authorization required: same-user-as:username
 */
 
-userRouter.post("/:username/watchlist/:symbol", /*#__PURE__*/function () {
+userRouter.post("/:username/watchlist/:symbol", ensureLoggedIn, ensureSameUserAsParam("username"), /*#__PURE__*/function () {
   var _ref4 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee4(req, res, next) {
     return _regeneratorRuntime().wrap(function _callee4$(_context4) {
       while (1) switch (_context4.prev = _context4.next) {
@@ -214,25 +212,24 @@ userRouter.post("/watchlist", ensureCorrectUser, /*#__PURE__*/function () {
             username: username,
             symbol: symbol
           }; //obj
-          debugger;
-          _context5.next = 6;
+          _context5.next = 5;
           return User.addToWatchlist(user);
-        case 6:
+        case 5:
           watchlistAdded = _context5.sent;
           res.json({
             watched: watchlistAdded
           });
-          _context5.next = 13;
+          _context5.next = 12;
           break;
-        case 10:
-          _context5.prev = 10;
+        case 9:
+          _context5.prev = 9;
           _context5.t0 = _context5["catch"](0);
           return _context5.abrupt("return", next(_context5.t0));
-        case 13:
+        case 12:
         case "end":
           return _context5.stop();
       }
-    }, _callee5, null, [[0, 10]]);
+    }, _callee5, null, [[0, 9]]);
   }));
   return function (_x13, _x14, _x15) {
     return _ref5.apply(this, arguments);
@@ -246,10 +243,7 @@ userRouter.post("/watchlist", ensureCorrectUser, /*#__PURE__*/function () {
  * Authorization required: same-user-as:username
 */
 
-userRouter["delete"]("/removeWatchlist",
-/*#__PURE__*/
-// ensureCorrectUser,
-function () {
+userRouter["delete"]("/removeWatchlist", ensureLoggedIn, ensureCorrectUser, /*#__PURE__*/function () {
   var _ref6 = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee6(req, res, next) {
     var _req$body3, username, symbol, user, watchlistRemoved;
     return _regeneratorRuntime().wrap(function _callee6$(_context6) {
@@ -261,25 +255,24 @@ function () {
             username: username,
             symbol: symbol
           }; //obj
-          debugger;
-          _context6.next = 6;
+          _context6.next = 5;
           return User.removeFromWatchlist(user);
-        case 6:
+        case 5:
           watchlistRemoved = _context6.sent;
           res.json({
             unwatched: watchlistRemoved
           });
-          _context6.next = 13;
+          _context6.next = 12;
           break;
-        case 10:
-          _context6.prev = 10;
+        case 9:
+          _context6.prev = 9;
           _context6.t0 = _context6["catch"](0);
           return _context6.abrupt("return", next(_context6.t0));
-        case 13:
+        case 12:
         case "end":
           return _context6.stop();
       }
-    }, _callee6, null, [[0, 10]]);
+    }, _callee6, null, [[0, 9]]);
   }));
   return function (_x16, _x17, _x18) {
     return _ref6.apply(this, arguments);

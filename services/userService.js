@@ -1,7 +1,7 @@
 import { Portfolio } from "../model/portfolio";
 import { User } from "../model/user";
 const bcrypt = require("bcrypt");
-const { NotFoundError, BadRequestError } = require("../expressError");
+const { NotFoundError, BadRequestError, UnauthorizedError } = require("../expressError");
 import { PortfolioTransactions } from "../model/portfoliotransactions";
 import { PriceData, updateprice } from "../model/Pricedata";
 
@@ -28,7 +28,7 @@ async function register(Obj) {
   });
   console.log("Inserted user result:", result);
 
-  return { username: result.username, email: result.email };
+  return { username: result.username, email: result.email, _id: result._id };
 }
 
 async function authenticate(username, password) {

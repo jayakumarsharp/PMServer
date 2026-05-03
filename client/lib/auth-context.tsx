@@ -7,13 +7,15 @@ interface AuthState {
   token: string | null;
   loading: boolean;
   login: (username: string, password: string) => Promise<void>;
+  /** Apply an existing JWT (e.g. after registration). */
+  establishSession: (username: string, token: string) => Promise<void>;
   logout: () => void;
   refresh: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthState>({
   user: null, token: null, loading: true,
-  login: async () => {}, logout: () => {}, refresh: async () => {},
+  login: async () => {}, establishSession: async () => {}, logout: () => {}, refresh: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -21,7 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function loadUser(tok: string, username: string) {
+  async function loadUser(username: string) {
     try {
       const { user: u } = await auth.getUser(username);
       setUser(u);
@@ -35,19 +37,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const uname = localStorage.getItem("pms_username");
     if (tok && uname) {
       setToken(tok);
-      loadUser(tok, uname).finally(() => setLoading(false));
+      loadUser(uname).finally(() => setLoading(false));
     } else {
       setLoading(false);
     }
   }, []);
 
-  async function login(username: string, password: string) {
-    const { token: tok } = await auth.login(username, password);
+  async function establishSession(username: string, tok: string) {
     localStorage.setItem("pms_token", tok);
     localStorage.setItem("pms_username", username);
     setToken(tok);
     const { user: u } = await auth.getUser(username);
     setUser(u);
+  }
+
+  async function login(username: string, password: string) {
+    const { token: tok } = await auth.login(username, password);
+    await establishSession(username, tok);
   }
 
   function logout() {
@@ -66,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout, refresh }}>
+    <AuthContext.Provider value={{ user, token, loading, login, establishSession, logout, refresh }}>
       {children}
     </AuthContext.Provider>
   );

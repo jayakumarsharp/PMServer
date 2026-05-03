@@ -9,7 +9,11 @@ function authenticateJWT(req, res, next) {
     const authHeader = req.headers && req.headers.authorization;
     if (authHeader) {
       const token = authHeader.replace(/^[Bb]earer /, "").trim();
-      req.user = jwt.verify(token, SECRET_KEY);
+      const decoded = jwt.verify(token, SECRET_KEY);
+      req.user = decoded;
+      if (req.user && req.user._id != null) {
+        req.user._id = String(req.user._id);
+      }
     }
     return next();
   } catch (err) {
@@ -42,6 +46,20 @@ function ensureCorrectUser(req, res, next) {
   }
 }
 
+/** Require JWT username to match :username (and a non-empty user id for data routes). */
+function ensureSameUserAsParam(param = "username") {
+  return (req, res, next) => {
+    try {
+      if (!req.user) throw new UnauthorizedError();
+      if (req.params[param] !== req.user.username) throw new UnauthorizedError();
+      if (!req.user._id) throw new UnauthorizedError("Please sign out and sign in again.");
+      return next();
+    } catch (err) {
+      return next(err);
+    }
+  };
+}
+
 // Blocks the request if the authenticated user doesn't own the portfolio
 async function ensureCorrectPortfolio(req, res, next) {
   try {
@@ -70,6 +88,7 @@ module.exports = {
   authenticateJWT,
   ensureLoggedIn,
   ensureCorrectUser,
+  ensureSameUserAsParam,
   ensureCorrectPortfolio,
   ensureCorrectHolding,
 };

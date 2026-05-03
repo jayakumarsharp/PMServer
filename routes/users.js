@@ -1,6 +1,6 @@
 const express = require("express");
 const userRouter = express.Router();
-const { ensureCorrectUser } = require("../middleware/auth");
+const { ensureCorrectUser, ensureLoggedIn, ensureSameUserAsParam } = require("../middleware/auth");
 require("../expressError");
 const User = require("../services/userService");
 const { createToken } = require("../helpers/tokens");
@@ -32,7 +32,8 @@ userRouter.post("/register", validate(registerSchema), async (req, res, next) =>
     console.log(req.body);
     var user={username, password, email};
     const newUser = await User.register(user);
-    res.json({ username: newUser.username, email: newUser.email });
+    const token = createToken(newUser);
+    res.json({ username: newUser.username, email: newUser.email, token });
   } catch (err) {
     next(err);
   }
@@ -47,7 +48,8 @@ userRouter.post("/register", validate(registerSchema), async (req, res, next) =>
  **/
 userRouter.get(
   "/:username",
-  // ensureCorrectUser,
+  ensureLoggedIn,
+  ensureSameUserAsParam("username"),
   async function (req, res, next) {
     try {
       const user = await User.get(req.params.username);
@@ -70,7 +72,8 @@ userRouter.get(
 
 userRouter.get(
   "/:username/complete",
-  //  ensureCorrectUser,
+  ensureLoggedIn,
+  ensureSameUserAsParam("username"),
   async function (req, res, next) {
     try {
       const user = await User.getComplete(req.params.username);
@@ -88,7 +91,11 @@ userRouter.get(
  * Authorization required: same-user-as:username
 */
 
-userRouter.post("/:username/watchlist/:symbol", async function (req, res, next) {
+userRouter.post(
+  "/:username/watchlist/:symbol",
+  ensureLoggedIn,
+  ensureSameUserAsParam("username"),
+  async function (req, res, next) {
   try {
     console.log(req);
     await User.addToWatchlist(req.params);
@@ -114,7 +121,6 @@ userRouter.post(
     try {
       const { username, symbol } = req.body;
     var user={username, symbol};//obj
-      debugger;
       const watchlistAdded = await User.addToWatchlist(user);
       res.json({ watched: watchlistAdded });
     } catch (err) {
@@ -132,13 +138,13 @@ userRouter.post(
 
 userRouter.delete(
   "/removeWatchlist",
-  // ensureCorrectUser,
+  ensureLoggedIn,
+  ensureCorrectUser,
   async function (req, res, next) {
     
     try {
       const { username, symbol } = req.body;
     var user={username, symbol};//obj
-      debugger;
       const watchlistRemoved = await User.removeFromWatchlist(user);
       res.json({ unwatched: watchlistRemoved });
     } catch (err) {

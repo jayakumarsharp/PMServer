@@ -217,5 +217,4 @@ if (!IS_VERCEL) {
   });
 }
 var _default = exports["default"] = app;
-
 //# sourceMappingURL=index.js.map

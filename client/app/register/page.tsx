@@ -3,8 +3,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { auth } from "@/lib/api";
+import { useAuth } from "@/lib/auth-context";
 
 export default function RegisterPage() {
+  const { establishSession } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState({ username: "", email: "", password: "", confirm: "" });
   const [error, setError] = useState("");
@@ -13,11 +15,15 @@ export default function RegisterPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (form.password !== form.confirm) return setError("Passwords do not match");
+    const u = form.username.trim();
+    if (u.length < 3) return setError("Username must be at least 3 letters or numbers.");
+    if (form.password.length < 6) return setError("Password must be at least 6 characters.");
     setError("");
     setLoading(true);
     try {
-      await auth.register(form.username, form.email, form.password);
-      router.push("/login?registered=1");
+      const data = await auth.register(u, form.email.trim(), form.password);
+      await establishSession(u, data.token);
+      router.push("/dashboard");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Registration failed");
     } finally {
@@ -28,12 +34,14 @@ export default function RegisterPage() {
   const field = (label: string, key: keyof typeof form, type = "text") => (
     <div>
       <label className="block text-sm text-gray-400 mb-1">{label}</label>
-      <input
+            <input
         type={type}
         value={form[key]}
         onChange={(e) => setForm({ ...form, [key]: e.target.value })}
         className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-blue-500"
         required
+        minLength={key === "username" ? 3 : key === "password" || key === "confirm" ? 6 : undefined}
+        autoComplete={key === "username" ? "username" : key === "email" ? "email" : "new-password"}
       />
     </div>
   );

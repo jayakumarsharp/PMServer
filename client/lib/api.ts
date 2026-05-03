@@ -13,7 +13,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   };
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
-  const res = await fetch(`${BASE}${path}`, { ...options, headers });
+  const res = await fetch(`${BASE}${path}`, {
+    ...options,
+    headers,
+    credentials: "include",
+  });
 
   if (res.status === 401) {
     localStorage.removeItem("pms_token");
@@ -99,12 +103,14 @@ export const imports = {
   preview: (formData: FormData) =>
     fetch(`${BASE}/api/import/preview`, {
       method: "POST",
+      credentials: "include",
       headers: { Authorization: `Bearer ${getToken()}` },
       body: formData,
     }).then((r) => r.json()),
   confirm: (formData: FormData) =>
     fetch(`${BASE}/api/import/confirm`, {
       method: "POST",
+      credentials: "include",
       headers: { Authorization: `Bearer ${getToken()}` },
       body: formData,
     }).then((r) => r.json()),
