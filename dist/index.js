@@ -55,10 +55,20 @@ var allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.s
   return o.trim();
 }) : ["http://localhost:3000", "http://localhost:3003"];
 console.log("CORS allowedOrigins:", allowedOrigins);
+function reflectCors(req, res) {
+  var origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Vary", "Origin");
+  }
+}
 app.use((0, _cors["default"])({
   origin: function origin(_origin, cb) {
+    // Never pass Error into cors — it skips CORS headers and hits the JSON error handler,
+    // which browsers report as a CORS failure.
     if (!_origin || allowedOrigins.includes(_origin)) return cb(null, true);
-    cb(new Error("CORS: origin not allowed"));
+    return cb(null, false);
   },
   credentials: true
 }));
@@ -71,6 +81,13 @@ var globalLimiter = (0, _expressRateLimit["default"])({
   legacyHeaders: false,
   message: {
     error: "Too many requests, please try again later."
+  },
+  skip: function skip(req) {
+    return req.method === "OPTIONS";
+  },
+  handler: function handler(req, res, _next, options) {
+    reflectCors(req, res);
+    res.status(options.statusCode).json(options.message);
   }
 });
 app.use(globalLimiter);
@@ -81,6 +98,13 @@ var authLimiter = (0, _expressRateLimit["default"])({
   max: 10,
   message: {
     error: "Too many login attempts, please try again later."
+  },
+  skip: function skip(req) {
+    return req.method === "OPTIONS";
+  },
+  handler: function handler(req, res, _next, options) {
+    reflectCors(req, res);
+    res.status(options.statusCode).json(options.message);
   }
 });
 app.use(_bodyParser["default"].json({
@@ -172,7 +196,8 @@ app.get("/api/cron/refresh", /*#__PURE__*/function () {
 }());
 
 // Centralized error handler — must be AFTER all routes
-app.use(function (err, _req, res, _next) {
+app.use(function (err, req, res, _next) {
+  reflectCors(req, res);
   var status = err.status || 500;
   var message = err.message || "Internal Server Error";
   if (status >= 500) console.error(err);
@@ -192,4 +217,5 @@ if (!IS_VERCEL) {
   });
 }
 var _default = exports["default"] = app;
+
 //# sourceMappingURL=index.js.map

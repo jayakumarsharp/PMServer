@@ -45,10 +45,21 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   : ["http://localhost:3000", "http://localhost:3003"];
 console.log("CORS allowedOrigins:", allowedOrigins);
 
+function reflectCors(req, res) {
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Vary", "Origin");
+  }
+}
+
 app.use(cors({
   origin: (origin, cb) => {
+    // Never pass Error into cors — it skips CORS headers and hits the JSON error handler,
+    // which browsers report as a CORS failure.
     if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
-    cb(new Error("CORS: origin not allowed"));
+    return cb(null, false);
   },
   credentials: true,
 }));
@@ -60,6 +71,11 @@ const globalLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many requests, please try again later." },
+  skip: (req) => req.method === "OPTIONS",
+  handler: (req, res, _next, options) => {
+    reflectCors(req, res);
+    res.status(options.statusCode).json(options.message);
+  },
 });
 app.use(globalLimiter);
 
@@ -68,6 +84,11 @@ const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
   message: { error: "Too many login attempts, please try again later." },
+  skip: (req) => req.method === "OPTIONS",
+  handler: (req, res, _next, options) => {
+    reflectCors(req, res);
+    res.status(options.statusCode).json(options.message);
+  },
 });
 
 app.use(bodyParser.json({ limit: "10mb" }));
@@ -125,7 +146,8 @@ app.get("/api/cron/refresh", async (_req, res) => {
 });
 
 // Centralized error handler — must be AFTER all routes
-app.use((err, _req, res, _next) => {
+app.use((err, req, res, _next) => {
+  reflectCors(req, res);
   const status = err.status || 500;
   const message = err.message || "Internal Server Error";
   if (status >= 500) console.error(err);
