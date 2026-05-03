@@ -43,6 +43,16 @@ export const auth = {
       body: JSON.stringify({ username, email, password }),
     }),
   getUser: (username: string) => request<{ user: User }>(`/api/users/${username}/complete`),
+  addToWatchlist: (data: { username: string; symbol: string }) =>
+    request<{ watched: { watchlist: string } }>("/api/users/watchlist", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  removeFromWatchlist: (data: { username: string; symbol: string }) =>
+    request<{ unwatched: { watchlist: string } }>("/api/users/removeWatchlist", {
+      method: "DELETE",
+      body: JSON.stringify(data),
+    }),
 };
 
 // ── Portfolio ─────────────────────────────────────────────────────────────────

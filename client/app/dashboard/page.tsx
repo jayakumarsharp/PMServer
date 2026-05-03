@@ -121,7 +121,7 @@ export default function DashboardPage() {
             <h2 className="font-semibold text-lg flex items-center gap-2">
               <Briefcase size={18} className="text-blue-400" /> Portfolios
             </h2>
-            <Link href="/portfolio/new" className="text-sm text-blue-400 hover:text-blue-300">
+            <Link href="/portfolio" className="text-sm text-blue-400 hover:text-blue-300">
               + New portfolio
             </Link>
           </div>
@@ -129,7 +129,7 @@ export default function DashboardPage() {
           {portfolios.length === 0 ? (
             <div className="bg-gray-900 rounded-2xl p-8 text-center text-gray-500">
               <p>No portfolios yet.</p>
-              <Link href="/portfolio/new" className="mt-2 inline-block text-blue-400 text-sm hover:underline">
+              <Link href="/portfolio" className="mt-2 inline-block text-blue-400 text-sm hover:underline">
                 Create your first portfolio →
               </Link>
             </div>
