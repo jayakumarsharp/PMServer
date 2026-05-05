@@ -2,30 +2,33 @@
 
 > **Document Type:** Product & Engineering Strategy (Living Document)
 > **Audience:** Founder / Solo Developer
-> **Last Updated:** April 2026
+> **Last Updated:** May 2026
 
 ---
 
 ## Table of Contents
 
 1. [What You Are Building](#1-what-you-are-building)
-2. [Full Feature Requirements](#2-full-feature-requirements)
-3. [Cloud Hosting — Costs & Benefits](#3-cloud-hosting--costs--benefits)
-4. [Yahoo Finance Free API — Strategy](#4-yahoo-finance-free-api--strategy)
-5. [Best Technology Stack (2026)](#5-best-technology-stack-2026)
-6. [Database Decision](#6-database-decision)
-7. [Claude AI Integration — Portfolio Intelligence](#7-claude-ai-integration--portfolio-intelligence)
-8. [Excel / CSV Holdings Import](#8-excel--csv-holdings-import)
-9. [Open Platform + Donation Model](#9-open-platform--donation-model)
-10. [Deployment Guide](#10-deployment-guide)
-11. [Implementation Tranches (All)](#11-implementation-tranches-all)
-12. [Prompting Guide for Claude Code](#12-prompting-guide-for-claude-code)
+2. [The Core Problem — Why This Exists](#2-the-core-problem--why-this-exists)
+3. [Primary User Persona](#3-primary-user-persona)
+4. [Wealth Intelligence — The Real Differentiator](#4-wealth-intelligence--the-real-differentiator)
+5. [Full Feature Requirements](#5-full-feature-requirements)
+6. [Cloud Hosting — Costs & Benefits](#6-cloud-hosting--costs--benefits)
+7. [Yahoo Finance Free API — Strategy](#7-yahoo-finance-free-api--strategy)
+8. [Best Technology Stack (2026)](#8-best-technology-stack-2026)
+9. [Database Decision](#9-database-decision)
+10. [Claude AI Integration — Portfolio Intelligence](#10-claude-ai-integration--portfolio-intelligence)
+11. [Excel / CSV Holdings Import](#11-excel--csv-holdings-import)
+12. [Open Platform + Donation Model](#12-open-platform--donation-model)
+13. [Deployment Guide](#13-deployment-guide)
+14. [Implementation Tranches (All)](#14-implementation-tranches-all)
+15. [Prompting Guide for Claude Code](#15-prompting-guide-for-claude-code)
 
 ---
 
 ## 1. What You Are Building
 
-**PMServer** is a fully open-source, self-hostable Portfolio Management System for retail investors — primarily targeting Indian market (NSE/BSE) but supporting global stocks.
+**PMServer** is a fully open-source, self-hostable Portfolio Management System for retail investors — primarily targeting Indian market (NSE/BSE) but supporting global stocks including US markets.
 
 ### Your Core Requirements (As Stated)
 
@@ -41,12 +44,154 @@
 | ATH (All-Time High) tracking | ✅ Built | Breakout frequency analysis |
 | Multi-currency accounts | ✅ Built | INR, USD, EUR, GBP, AUD, etc. |
 | Watchlist | ✅ Built | Per-user symbol watchlist |
-| Free hosting deployment | 📋 Planned | Railway + MongoDB Atlas free tier |
+| Broker fee config (VIO Bank) | ✅ Built | Per-broker commission, auto-applied on trade |
+| DCA tracking with break-even | ✅ Built | Average cost, break-even incl. commissions |
+| Profit target / sell signals | ✅ Built | Alert when holding hits target return % |
+| Net P&L after commissions | ✅ Built | True return after all trading fees |
+| Free hosting deployment | ✅ Built | Render + MongoDB Atlas + Vercel |
 | Open source + donation | ✅ Built | MIT License, donation links |
 
 ---
 
-## 2. Full Feature Requirements
+## 2. The Core Problem — Why This Exists
+
+> *"I have stocks in India (NSE/BSE) and US markets. I use VIO Bank for US trades at $0.50 per trade. Every time I buy a dip I pay $0.50, every sell $0.50. When I buy 5 dips in one stock, that's $2.50 in fees just to accumulate. I have no single place that shows me my real return — after all fees, across both markets, in one view."*
+
+This is the problem PMServer solves. Not just portfolio tracking. **True wealth clarity.**
+
+### What retail investors suffer from today
+
+| Pain | What happens | PMServer fix |
+|------|-------------|--------------|
+| **Invisible fees** | Each $0.50 trade commission feels small, adds up to thousands | Commission tracking at broker level, net P&L on every holding |
+| **DCA confusion** | Bought same stock at 5 different prices — what's my real avg cost? | DCA summary: avg cost, break-even price, lot history |
+| **Two-market blindness** | INR stocks in Zerodha, USD stocks in VIO Bank — no combined view | Multi-currency portfolio, USD + INR in one dashboard |
+| **No sell signal** | Holding a stock — don't know when profit justifies selling | Profit target alerts: "AAPL hit your 20% target net of fees" |
+| **Spreadsheet hell** | Updating Excel manually every week, formulas break | Import once, prices refresh automatically every 30 min |
+| **Advisor dependency** | Paying ₹500–5000/month for advice you could generate yourself | Claude AI analysis using your own API key, zero recurring cost |
+| **Tax surprise** | STCG/LTCG hits at year end, no visibility during the year | Tax lot tracking (roadmap T13) |
+| **False returns** | P&L looks great but ignores brokerage, taxes, currency loss | Net return calculation: gross P&L − commissions − forex delta |
+
+---
+
+## 3. Primary User Persona
+
+### Persona: The Self-Directed Indian Investor
+
+```
+Name:     Jay (composite of real users)
+Age:      30–45
+Job:      Software engineer / IT professional
+Income:   ₹15–50 LPA
+Markets:  NSE/BSE (primary) + US stocks (secondary, via VIO Bank / IBKR / Vested)
+Brokers:  Zerodha / Upstox (India) + VIO Bank / Interactive Brokers (US)
+Style:    Long-term + opportunistic dip buying (DCA on conviction)
+Pain:     Knows his stocks, doesn't know his real returns
+Goal:     Financial independence — knows roughly when, not precisely enough
+```
+
+### What Jay does today (before PMServer)
+1. Keeps a Google Sheet with all holdings — updates manually after each trade
+2. No commission tracking — "it's just $0.50, doesn't matter" (it does, at scale)
+3. Cannot see INR + USD holdings in one view
+4. Calls CA at year end for tax — surprised every time
+5. Checks Zerodha app for India, VIO Bank app for US — never combined
+6. No sell discipline — holds too long or sells too early from gut feel
+
+### What Jay does with PMServer
+1. Imports trades from Zerodha CSV + VIO Bank statement in one place
+2. Sees combined net worth in INR (converted at live rate)
+3. Gets a break-even price per stock that includes all commissions paid
+4. Receives a signal when any holding crosses his target return
+5. Asks Claude AI: "Should I sell AAPL now or wait for Q3 earnings?"
+6. Year-end: exports tax report — STCG/LTCG per lot, US gains in INR equivalent
+
+---
+
+## 4. Wealth Intelligence — The Real Differentiator
+
+> This is not a portfolio tracker. It is a **personal wealth intelligence system.**
+> The difference: a tracker shows you numbers. Intelligence tells you what to do with them.
+
+### 4.1 True Cost of Trading (Built)
+
+Most tools show gross P&L. PMServer shows **net P&L** — after every rupee and dollar paid in commission.
+
+```
+Example: You bought AAPL at 5 different dips
+  Buy 1: 10 shares @ $170  commission $0.50
+  Buy 2: 10 shares @ $165  commission $0.50
+  Buy 3: 10 shares @ $160  commission $0.50
+  Buy 4: 15 shares @ $155  commission $0.50
+  Buy 5: 15 shares @ $150  commission $0.50
+
+  Gross avg cost:    $160.00/share
+  Total commissions: $2.50
+  Break-even price:  $160.04/share  ← PMServer shows this
+  Current price:     $175.00/share
+
+  Gross P&L:  +$900.00  (looks great)
+  Net P&L:    +$897.50  (real number, after fees)
+  Net return: +12.3%    (what actually matters)
+```
+
+### 4.2 DCA Intelligence (Built)
+
+Dollar Cost Averaging is a discipline. PMServer tracks it rigorously:
+- Every lot you bought, the date, price, commission
+- Running average cost that updates with each new buy
+- Break-even price that accounts for all commissions
+- Visual lot history: "you bought 5 dips, here they are"
+
+### 4.3 Sell Signal Engine (Built)
+
+Emotional selling is the #1 destroyer of retail investor returns. PMServer removes emotion:
+- Set a target return % when you buy (e.g., "I want 20% net of fees")
+- System compares current price against break-even, not just avg cost
+- When target is hit: `SELL signal — AAPL: 20.3% net return achieved`
+- No emotion. Pure math.
+
+### 4.4 Multi-Currency Wealth View (Roadmap — High Priority)
+
+Indian investors in US markets face a hidden risk: **currency erosion.**
+
+```
+You bought AAPL at $150 when USD/INR = 82
+AAPL is now $165 (+10%)
+But USD/INR is now 84 (+2.4%)
+
+Gross USD return:     +10.0%
+INR equivalent gain:  +12.4%  ← currency tailwind in this case
+
+If INR had strengthened to 80:
+INR equivalent gain:  +7.3%   ← currency headwind, hurts real returns
+```
+
+PMServer will show both views — USD return and INR-equivalent return — so you understand your real wealth change.
+
+### 4.5 Portfolio Intelligence Layers (Roadmap)
+
+```
+Layer 1 — What do I have?          (Built: holdings, prices, P&L)
+Layer 2 — What did it really cost? (Built: commissions, break-even)
+Layer 3 — When should I sell?      (Built: profit signals)
+Layer 4 — What is my real return?  (Next: XIRR, currency-adjusted)
+Layer 5 — How am I taxed?          (Roadmap: STCG/LTCG, US capital gains)
+Layer 6 — Am I diversified right?  (Claude AI: sector, geography, currency)
+Layer 7 — What should I do next?   (Claude AI: rebalance, SIP, add/reduce)
+```
+
+### 4.6 The Advisory Fee Trap
+
+Financial advisors in India charge ₹500–₹5000/month for portfolio reviews.
+What they do: look at your holdings, compare to an index, say "diversify more."
+What PMServer + Claude AI does: the same thing, in seconds, using your own data, for ~₹80/month in Claude API costs.
+
+**This tool pays for itself on day one.**
+
+---
+
+## 5. Full Feature Requirements
 
 ### 2.1 Holdings Management
 
@@ -140,7 +285,7 @@ Frontend: Vercel (free, global CDN)
 
 ---
 
-## 3. Cloud Hosting — Costs & Benefits
+## 6. Cloud Hosting — Costs & Benefits
 
 ### Recommended Free Tier Setup
 
@@ -174,7 +319,7 @@ Frontend: Vercel (free, global CDN)
 
 ---
 
-## 4. Yahoo Finance Free API — Strategy
+## 7. Yahoo Finance Free API — Strategy
 
 ### Current Use (yahoo-finance2)
 - Unofficial scraper library — no API key needed
@@ -209,7 +354,7 @@ Currency rates:
 
 ---
 
-## 5. Best Technology Stack (2026)
+## 8. Best Technology Stack (2026)
 
 ### Current Stack (Keep — Solid Choices)
 
@@ -247,7 +392,7 @@ Redis:      Upstash Redis (serverless, free tier)
 
 ---
 
-## 6. Database Decision
+## 9. Database Decision
 
 ### Verdict: Keep MongoDB + Plan PostgreSQL for v2
 
@@ -275,7 +420,7 @@ PostgreSQL / Supabase (future v2):
 
 ---
 
-## 7. Claude AI Integration — Portfolio Intelligence
+## 10. Claude AI Integration — Portfolio Intelligence
 
 ### Architecture
 
@@ -361,7 +506,7 @@ User's Claude API key:
 
 ---
 
-## 8. Excel / CSV Holdings Import
+## 11. Excel / CSV Holdings Import
 
 ### Supported Formats
 
@@ -414,7 +559,7 @@ Download these templates, fill in your holdings, upload:
 
 ---
 
-## 9. Open Platform + Donation Model
+## 12. Open Platform + Donation Model
 
 ### Why Open Source
 
@@ -445,7 +590,7 @@ CONTRIBUTING.md  → How to add a broker adapter
 
 ---
 
-## 10. Deployment Guide
+## 13. Deployment Guide
 
 ### Backend — Railway.app (30 minutes)
 
@@ -508,7 +653,7 @@ docker-compose up -d
 
 ---
 
-## 11. Implementation Tranches (All)
+## 14. Implementation Tranches (All)
 
 ### ✅ Completed
 
@@ -547,7 +692,7 @@ docker-compose up -d
 
 ---
 
-## 12. Prompting Guide for Claude Code
+## 15. Prompting Guide for Claude Code
 
 Since you are new to Claude Code, here are the exact prompts to use:
 
