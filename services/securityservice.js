@@ -8,24 +8,16 @@ async function securities() {
 
 async function updateSecurity(newData) {
     try {
-        // Find the security by id and update it
         const existingSecurity = await securityMaster.findOne({ symbol: newData.symbol });
 
         if (existingSecurity) {
-            // If the security exists, update it
             const updatedSecurity = await securityMaster.findByIdAndUpdate(existingSecurity._id, newData, { new: true });
-            
-            if (!updatedSecurity) {
-                throw new Error('Security not found after update attempt');
-            }
-    
+            if (!updatedSecurity) throw new Error('Security not found after update attempt');
             return updatedSecurity;
         } else {
-            // If the security doesn't exist, create a new one
             console.log(newData);
             const newSecurity = new securityMaster(newData);
             await newSecurity.save();
-    
             return newSecurity;
         }
     } catch (error) {
@@ -33,7 +25,28 @@ async function updateSecurity(newData) {
     }
 }
 
+// Search local SecurityMaster by symbol or name (case-insensitive, partial match)
+async function searchLocal(term) {
+    if (!term) return [];
+    const regex = new RegExp(term, 'i');
+    const results = await securityMaster.find({
+        $or: [
+            { symbol: regex },
+            { shortname: regex },
+            { longname: regex },
+        ]
+    }).limit(10).lean();
 
+    return results.map(s => ({
+        symbol: s.symbol,
+        shortname: s.shortname || s.symbol,
+        longname: s.longname || s.shortname || s.symbol,
+        exchange: s.exchDisp || s.exchange,
+        quoteType: s.quoteType || 'EQUITY',
+        sector: s.sector,
+        source: 'local',
+    }));
+}
 
 async function deleteSecurityById(id) {
     try {
@@ -45,5 +58,4 @@ async function deleteSecurityById(id) {
     }
 }
 
-
-export { securities, updateSecurity, deleteSecurityById };
+export { securities, updateSecurity, deleteSecurityById, searchLocal };

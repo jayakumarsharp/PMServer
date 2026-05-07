@@ -4,6 +4,7 @@ import {
   securities,
   updateSecurity,
   deleteSecurityById,
+  searchLocal,
 } from "../services/securityservice";
 
 const securityapiRouter = express.Router();
@@ -48,13 +49,24 @@ securityapiRouter.post("/getchart", async (req, res) => {
   }
 });
 
-securityapiRouter.post("/search", async (req, res) => {
+securityapiRouter.post("/search", async (req, res, next) => {
+  const term = req.body.name;
+  if (!term) return res.status(400).json({ error: "name is required" });
   try {
-    const search = await yahooFinance.search(req.body.name);
-    res.json(search);
+    const localResults = await searchLocal(term);
+    let yahooQuotes = [];
+    try {
+      const yf = await yahooFinance.search(term, {}, { validateResult: false });
+      yahooQuotes = yf?.quotes || [];
+    } catch (_) {}
+    const localSymbols = new Set(localResults.map(r => r.symbol));
+    const merged = [
+      ...localResults,
+      ...yahooQuotes.filter(q => !localSymbols.has(q.symbol)),
+    ];
+    res.json({ quotes: merged });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server Error");
+    next(err);
   }
 });
 
@@ -178,13 +190,24 @@ securityapiRouter.post("/fundamentalsTimeSeries", async (req, res) => {
   }
 });
 
-securityapiRouter.post("/Addsecurity", async (req, res) => {
+securityapiRouter.post("/Addsecurity", async (req, res, next) => {
+  const term = req.body.name;
+  if (!term) return res.status(400).json({ error: "name is required" });
   try {
-    const search = await yahooFinance.search(req.body.name);
-    res.json(search);
+    const localResults = await searchLocal(term);
+    let yahooQuotes = [];
+    try {
+      const yf = await yahooFinance.search(term, {}, { validateResult: false });
+      yahooQuotes = yf?.quotes || [];
+    } catch (_) {}
+    const localSymbols = new Set(localResults.map(r => r.symbol));
+    const merged = [
+      ...localResults,
+      ...yahooQuotes.filter(q => !localSymbols.has(q.symbol)),
+    ];
+    res.json({ quotes: merged });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send("Server Error");
+    next(err);
   }
 });
 
@@ -276,12 +299,41 @@ securityapiRouter.post("/quotesummarydetailed", async function (req, res, next) 
 });
 
 
-/** Search quotes */
+/** Search quotes — DB first, Yahoo Finance fallback */
 
 securityapiRouter.get("/search", async function (req, res, next) {
+  const term = req.query.term;
+  if (!term) return res.status(400).json({ error: "term query param is required" });
+
   try {
-    const results = await yahooFinance.search(req.query.term);
-    return res.json({ results });
+    // 1. Always search local SecurityMaster first (works everywhere)
+    const localResults = await searchLocal(term);
+
+    // 2. Try Yahoo Finance (works on local dev; blocked on some cloud IPs)
+    let yahooQuotes = [];
+    try {
+      const yf = await yahooFinance.search(term, {}, { validateResult: false });
+      yahooQuotes = (yf?.quotes || []).map(q => ({
+        symbol: q.symbol,
+        shortname: q.shortname || q.symbol,
+        longname: q.longname || q.shortname || q.symbol,
+        exchange: q.exchDisp || q.exchange,
+        quoteType: q.quoteType || 'EQUITY',
+        sector: q.sector,
+        source: 'yahoo',
+      }));
+    } catch (_) {
+      // Yahoo Finance unavailable from this environment — local results only
+    }
+
+    // 3. Merge: local first, then Yahoo results not already in local
+    const localSymbols = new Set(localResults.map(r => r.symbol));
+    const merged = [
+      ...localResults,
+      ...yahooQuotes.filter(q => !localSymbols.has(q.symbol)),
+    ];
+
+    return res.json({ results: merged, sources: { local: localResults.length, yahoo: yahooQuotes.length } });
   } catch (err) {
     return next(err);
   }
