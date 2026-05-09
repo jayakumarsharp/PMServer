@@ -26,6 +26,7 @@ import importRouter from "./routes/importRouter";
 import voiceRouter from "./routes/voiceRouter";
 import brokerRouter from "./routes/brokerRouter";
 import claudeRouter from "./routes/claudeRouter";
+import dividendRouter from "./routes/dividendRouter";
 
 const IS_VERCEL = !!process.env.VERCEL;
 
@@ -131,6 +132,7 @@ app.use("/api/import", importRouter);
 app.use("/api/voice", voiceRouter);
 app.use("/api/broker", brokerRouter);
 app.use("/api/ai", claudeRouter);
+app.use("/api/dividends", dividendRouter);
 
 // Vercel cron endpoint — called daily by Vercel to refresh prices
 // (Hobby plan: once per day max. Pro plan: every 30 min)

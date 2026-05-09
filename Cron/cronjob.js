@@ -88,93 +88,104 @@ async function fetchDataAndUpdate() {
       console.log(results);
     }
 
-    // const today = new Date(); // Today's date
-    // const yesterday = new Date(today);
-    // yesterday.setDate(today.getDate() - 2); // Yesterday's date
+    // Sync daily price history for all active holdings using yahooFinance.chart()
+    const yesterday = moment().subtract(2, "days").toDate();
 
-    // const pricehistorysecurityresult = await securityMaster
-    //   .aggregate([
-    //     {
-    //       $lookup: {
-    //         from: "pricehistories",
-    //         localField: "_id",
-    //         foreignField: "securityMaster_id",
-    //         as: "priceHistory",
-    //       },
-    //     },
-    //     {
-    //       $addFields: {
-    //         latestPriceHistory: {
-    //           $cond: {
-    //             if: { $eq: [{ $size: "$priceHistory" }, 0] },
-    //             then: null,
-    //             else: { $arrayElemAt: ["$priceHistory", -1] },
-    //           },
-    //         },
-    //       },
-    //     },
-    //     {
-    //       $match: {
-    //         $or: [
-    //           { priceHistory: { $size: 0 } },
-    //           { "latestPriceHistory.date": { $gt: yesterday } },
-    //         ],
-    //       },
-    //     },
-    //     {
-    //       $project: {
-    //         _id: 0,
-    //         symbol: "$symbol",
-    //         latestPriceHistory: 1,
-    //         latestPriceDate: "$latestPriceHistory.date",
-    //       },
-    //     },
-    //     {
-    //       $limit: 1,
-    //     },
-    //   ])
-    //   .exec();
+    const priceHistorySecurities = await securityMaster
+      .aggregate([
+        {
+          $lookup: {
+            from: "portfoliotransactions",
+            localField: "_id",
+            foreignField: "symbol",
+            as: "transactions",
+          },
+        },
+        { $match: { transactions: { $exists: true, $ne: [] } } },
+        {
+          $lookup: {
+            from: "pricehistories",
+            localField: "_id",
+            foreignField: "securityMaster_id",
+            as: "priceHistory",
+          },
+        },
+        {
+          $addFields: {
+            latestPriceHistory: {
+              $cond: {
+                if: { $eq: [{ $size: "$priceHistory" }, 0] },
+                then: null,
+                else: { $arrayElemAt: ["$priceHistory", -1] },
+              },
+            },
+          },
+        },
+        {
+          $match: {
+            $or: [
+              { priceHistory: { $size: 0 } },
+              { "latestPriceHistory.date": { $lt: yesterday } },
+            ],
+          },
+        },
+        {
+          $project: {
+            symbol: 1,
+            latestPriceHistory: 1,
+          },
+        },
+        { $limit: 5 }, // Process up to 5 symbols per run to avoid rate limits
+      ])
+      .exec();
 
-    // console.log("Records:", pricehistorysecurityresult);
+    console.log("Price history sync — symbols to update:", priceHistorySecurities.length);
 
-    // for (const secsymbol of pricehistorysecurityresult) {
-    //   //   // Find the last entry date for the symbol
+    for (const sec of priceHistorySecurities) {
+      let startDate = "2000-01-01";
+      if (sec.latestPriceHistory) {
+        startDate = moment(sec.latestPriceHistory.date).add(1, "days").format("YYYY-MM-DD");
+      }
+      const today = moment().format("YYYY-MM-DD");
 
-    //   // const lastEntry = await pricehistories
-    //   //   .findOne({ securityMaster_id: secsymbol._id })
-    //   //   .sort({ date: -1 })
-    //   //   .lean();
+      if (!moment(startDate).isBefore(today)) {
+        console.log("Price history up to date for", sec.symbol);
+        continue;
+      }
 
-    //   // Determine the start date for the query
-    //   let startDate = "2000-01-01"; // Default start date
-    //   if (secsymbol.latestPriceHistory) {
-    //     startDate = moment(secsymbol.latestPriceHistory.date).add(1, "days").format("YYYY-MM-DD");
-    //   }
-    //   console.log("start date", startDate);
-    //   // Set query options
-    //   const queryOptions = { period1: startDate };
-    //   const today = moment().format("YYYY-MM-DD");
-    //   if (moment(startDate).isBefore(today)) {
-    //     // Introduce a delay before making the API call
-    //     await delay(1500); // 15 seconds delay
-    //     console.log("calling yahoo", secsymbol.symbol);
-    //     // Fetch historical data from Yahoo Finance API
-    //     const result1 = await yahooFinance.historical(
-    //       secsymbol.symbol,
-    //       queryOptions
-    //     );
+      await delay(2000); // 2s between requests to avoid rate limiting
+      console.log("Fetching price history for", sec.symbol, "from", startDate);
 
-    //     // Save or update each historical data entry to the database
-    //     var priceupdateresponse = await Promise.all(
-    //       result1.map(async (entry) => {
-    //         entry.symbol = secsymbol.symbol;
-    //         await updatepricedata(entry);
-    //       })
-    //     );
-    // } else {
-    //   console.log("skpped price since already exist", secsymbol.symbol);
-    // }
-    // }
+      try {
+        const chartResult = await yahooFinance.chart(sec.symbol, {
+          period1: startDate,
+          interval: "1d",
+          events: "history",
+        }, { validateResult: false });
+
+        const quotes = chartResult?.quotes || [];
+        if (quotes.length) {
+          await Promise.all(
+            quotes.map(async (entry) => {
+              await updatepricedata({
+                symbol: sec.symbol,
+                securityMaster_id: sec._id,
+                date: entry.date,
+                open: entry.open,
+                high: entry.high,
+                low: entry.low,
+                close: entry.close,
+                adjclose: entry.adjclose,
+                volume: entry.volume,
+              });
+            })
+          );
+          console.log(`Saved ${quotes.length} price history records for ${sec.symbol}`);
+        }
+      } catch (chartErr) {
+        console.warn(`Price history fetch failed for ${sec.symbol}:`, chartErr.message);
+      }
+    }
   } catch (error) {
     console.error("Error fetching or updating data:", error);
   } finally {

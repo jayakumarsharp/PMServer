@@ -8,7 +8,9 @@ const portfolioSchema = new mongoose.Schema({
     type: mongoose.Schema.ObjectId,
     ref: "User",
   },
-});
+  cash_balance: { type: Number, default: 0 },
+  currency: { type: String, uppercase: true, default: "INR" },
+}, { timestamps: true });
 
 const Portfolio = mongoose.model("Portfolio", portfolioSchema);
 

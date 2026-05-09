@@ -1,6 +1,6 @@
 const express = require("express");
 const portfoliotransactionsRouter = express.Router();
-const { createHolding, getHoldingbypfandsecurity, getDCASummary, getProfitSignals } = require("../services/PortfolioTransactionService");
+const { createHolding, getHoldingbypfandsecurity, getDCASummary, getProfitSignals, getRealizedUnrealizedPnL, getXIRR } = require("../services/PortfolioTransactionService");
 const { validate, createTransactionSchema } = require("../validations/schemas");
 
 
@@ -55,6 +55,34 @@ portfoliotransactionsRouter.get(
     try {
       const signals = await getProfitSignals(req.params.portfolioId);
       return res.json(signals);
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
+// GET /realized-unrealized/:portfolioId
+// Returns FIFO-matched realized P&L vs open unrealized positions
+portfoliotransactionsRouter.get(
+  "/realized-unrealized/:portfolioId",
+  async function (req, res, next) {
+    try {
+      const result = await getRealizedUnrealizedPnL(req.params.portfolioId);
+      return res.json(result);
+    } catch (err) {
+      return next(err);
+    }
+  }
+);
+
+// GET /xirr/:portfolioId
+// Returns XIRR (true annualized return) for the portfolio
+portfoliotransactionsRouter.get(
+  "/xirr/:portfolioId",
+  async function (req, res, next) {
+    try {
+      const result = await getXIRR(req.params.portfolioId);
+      return res.json(result);
     } catch (err) {
       return next(err);
     }

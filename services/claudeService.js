@@ -122,19 +122,28 @@ async function analyzePortfolio({ userId, userMessage, analysisType = "general",
 
   const portfolioContext = await buildPortfolioContext(userId);
 
-  const systemPrompt = `You are an expert Indian stock market portfolio analyst and financial advisor.
+  const staticSystemText = `You are an expert Indian stock market portfolio analyst and financial advisor.
 You have deep knowledge of NSE/BSE markets, Indian tax laws (STCG/LTCG), and retail investment strategies.
-
-The user's current portfolio data:
-${portfolioContext}
 
 Guidelines:
 - All monetary values are in Indian Rupees (₹) unless stated otherwise
 - Reference specific holdings by name when giving advice
 - For tax questions: STCG applies to equity held < 12 months (15% tax), LTCG > ₹1L gain taxed at 10%
 - Be concise but thorough. Use bullet points for clarity.
-- If the portfolio is empty, encourage the user to add holdings via the Import feature
-- Analysis type requested: ${analysisType}`;
+- If the portfolio is empty, encourage the user to add holdings via the Import feature`;
+
+  // System as array with cache_control on the large static block
+  const system = [
+    {
+      type: "text",
+      text: staticSystemText,
+      cache_control: { type: "ephemeral" },
+    },
+    {
+      type: "text",
+      text: `Current portfolio data:\n${portfolioContext}\n\nAnalysis type requested: ${analysisType}`,
+    },
+  ];
 
   const messages = [
     ...chatHistory.map((m) => ({ role: m.role, content: m.content })),
@@ -144,8 +153,9 @@ Guidelines:
   const response = await client.messages.create({
     model: "claude-opus-4-6",
     max_tokens: 1024,
-    system: systemPrompt,
+    system,
     messages,
+    betas: ["prompt-caching-2024-07-31"],
   });
 
   return response.content[0]?.text || "No response from Claude.";
